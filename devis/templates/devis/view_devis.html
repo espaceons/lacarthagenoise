@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Votre Liste de Devis - La Carthagenoise
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-10 offset-lg-1">
+      <h1 class="text-center mb-5">Votre Sélection pour Demande de Devis</h1>
+
+      {% if devis_panier %}
+        <table class="table table-bordered table-striped">
+          <thead class="thead-dark">
+            <tr>
+              <th scope="col">Référence</th>
+              <th scope="col">Nom du Produit</th>
+              <th scope="col">Quantité</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for produit_id, item in devis_panier.items %}
+              <tr>
+                <td>{{ item.reference }}</td>
+                <td>{{ item.nom }}</td>
+                <td>{{ item.quantite }}</td>
+                <td>
+                  <a href="#" class="btn btn-sm btn-danger">Retirer</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="text-right mt-4">
+          <a href="{% url 'submit_devis' %}" class="btn btn-lg btn-success">Soumettre la Demande de Devis ({{ devis_panier|length }} articles)</a>
+        </div>
+      {% else %}
+        <div class="alert alert-info text-center" role="alert">Votre liste de devis est actuellement vide.</div>
+        <div class="text-center">
+          <a href="{% url 'liste_produits' %}" class="btn btn-primary btn-lg">Parcourir le Catalogue</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

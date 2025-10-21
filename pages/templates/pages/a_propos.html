@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  À Propos de La Carthagenoise - Histoire et Savoir-faire
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-10 offset-lg-1">
+      <h1 class="display-4 text-center mb-5">L'Âme de la Terre Cuite : Notre Histoire</h1>
+
+      <p class="lead text-center">La Carthagenoise est née de la passion pour l'artisanat tunisien, ancrée dans la tradition séculaire de la ville de Moknine. Chaque pièce que nous créons raconte une histoire, celle de la terre rouge, du soleil et du savoir-faire transmis de génération en génération.</p>
+
+      <hr class="my-5" />
+
+      <div class="row featurette align-items-center mb-5">
+        <div class="col-md-7 order-md-2">
+          <h2 class="featurette-heading">Un Savoir-Faire Authentique.</h2>
+          <p class="lead">Nos maîtres potiers perpétuent des techniques ancestrales tout en y insufflant une touche de modernité. Du tournage à la cuisson au four traditionnel, nous garantissons l'authenticité et la qualité exceptionnelle de chaque jarre, pot et luminaire.</p>
+        </div>
+        <div class="col-md-5 order-md-1">
+          <img src="{% static 'images/poterie_traditionnelle.jpg' %}" class="img-fluid rounded shadow" alt="Image d'un potier au travail" />
+        </div>
+      </div>
+
+      <div class="row featurette align-items-center">
+        <div class="col-md-7">
+          <h2 class="featurette-heading">Moknine : Notre Racine.</h2>
+          <p class="lead">Notre atelier est situé au cœur de Moknine, une région célèbre pour la richesse de son argile. Nous nous engageons à utiliser des matériaux locaux et à soutenir l'économie artisanale de notre communauté.</p>
+        </div>
+        <div class="col-md-5">
+          <img src="{% static 'images/atelier_moknine.jpg' %}" class="img-fluid rounded shadow" alt="Vue de l'atelier de poterie" />
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

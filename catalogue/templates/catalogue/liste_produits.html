@@ -1,0 +1,25 @@
+{% extends 'base.html' %} {% block title %}
+  Catalogue - {{ block.super }}
+{% endblock %} {% block content %}
+  <h1>Notre Catalogue</h1>
+  <div class="row">
+    {% for produit in produits %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}">
+            {% if produit.image %}
+              <img src="{{ produit.image.url }}" class="card-img-top" alt="{{ produit.nom }}" />
+            {% endif %}
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">{{ produit.nom }}</h5>
+            <p class="card-text text-muted">Réf: {{ produit.reference }}</p>
+            <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="btn btn-sm btn-outline-primary">Détails</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p>Aucun produit disponible.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
