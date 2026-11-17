@@ -6,10 +6,13 @@ from .views import ProduitListView, ProduitDetailView
 app_name = 'catalogue'
 
 urlpatterns = [
-    # Page d'accueil du catalogue (tous les produits)
+    # 1. Chemin Racine (le plus spécifique)
     path('', ProduitListView.as_view(), name='liste_produits'),
-    # Filtrer par catégorie
-    path('<slug:slug>/', ProduitListView.as_view(), name='liste_par_categorie'),
-    # Détail d'un produit (pk est la clé primaire)
+
+    # 2. Chemin Détail Produit (spécifique avec PK)
     path('produit/<int:pk>/', ProduitDetailView.as_view(), name='detail_produit'),
+
+    # 3. Chemin Catégorie (le plus générique)
+    # Laissez ce chemin à la fin.
+    path('<slug:slug>/', ProduitListView.as_view(), name='liste_par_categorie'),
 ]

@@ -21,10 +21,16 @@ from django.conf.urls.static import static  # Importez static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Intégration des routes de l'application utilisateurs avec un namespace
+    path('utilisateur/', include(('utilisateur.urls',
+         'utilisateur'), namespace='utilisateur')),
     # Le catalogue devient l'index du site
-    path('', include('catalogue.urls')),
-    path('devis/', include('devis.urls')),
-    path('pages/', include('pages.urls')),
+    # 🚨 1. LES URLS FIXES DOIVENT ÊTRE EN PREMIER (avant le catalogue)
+    path('devis/', include(('devis.urls', 'devis'), namespace='devis')),
+    path('pages/', include(('pages.urls', 'pages'), namespace='pages')),
+
+    # 2. LE CATALOGUE (AVEC SON SLUG DYNAMIQUE) DOIT ÊTRE EN DERNIER
+    path('', include(('catalogue.urls', 'catalogue'), namespace='catalogue')),
 ]
 
 
@@ -36,5 +42,3 @@ if settings.DEBUG:
     # Pour les fichiers STATIQUES (CSS, JS)
     urlpatterns += static(settings.STATIC_URL,
                           document_root=settings.STATIC_ROOT)
-    # NOTE: Le bloc statique est souvent facultatif si l'app 'django.contrib.staticfiles' est bien configurée,
-    # mais il est essentiel pour les médias.

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load devis_extras %}
 
 {% block title %}
   Votre Liste de Devis - La Carthagenoise
@@ -9,37 +10,54 @@
     <div class="col-lg-10 offset-lg-1">
       <h1 class="text-center mb-5">Votre Sélection pour Demande de Devis</h1>
 
-      {% if devis_panier %}
-        <table class="table table-bordered table-striped">
+      {# On vérifie la nouvelle variable passée par la vue #}
+      {% if devis_items %}
+        <table class="table table-bordered table-striped align-middle">
           <thead class="thead-dark">
             <tr>
-              <th scope="col">Référence</th>
+              <th scope="col" style="width: 80px;"></th>
               <th scope="col">Nom du Produit</th>
-              <th scope="col">Quantité</th>
-              <th scope="col">Action</th>
+              <th scope="col">Catégorie</th>
+              <th scope="col" style="width: 15%;">Quantité</th>
+              <th scope="col" style="width: 15%;">Action</th>
             </tr>
           </thead>
           <tbody>
-            {% for produit_id, item in devis_panier.items %}
+            {# On itère sur la liste sécurisée d'objets complets #}
+            {% for item in devis_items %}
               <tr>
-                <td>{{ item.reference }}</td>
-                <td>{{ item.nom }}</td>
+                <td>
+                  {# Accès direct à l'objet produit pour l'image #}
+                  {% if item.produit.image %}
+                    <img src="{{ item.produit.image.url }}" alt="{{ item.produit.nom }}" class="img-fluid rounded" style="max-height: 50px;" />
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'catalogue:detail_produit' pk=item.produit.pk %}" class="fw-bold">{{ item.produit.nom }}</a>
+                  <br /><small class="text-muted">Réf: {{ item.produit.reference }}</small>
+                </td>
+                <td>{{ item.produit.categorie.nom }}</td>
                 <td>{{ item.quantite }}</td>
                 <td>
-                  <a href="#" class="btn btn-sm btn-danger">Retirer</a>
+                  {# Le lien Retirer est maintenant correct et utilise le namespace 'devis' #}
+                  <a href="{% url 'devis:remove_from_devis' produit_id=item.produit.pk %}" class="btn btn-sm btn-danger" title="Réduire la quantité ou retirer"><i class="fas fa-minus-circle"></i> Retirer</a>
                 </td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
 
-        <div class="text-right mt-4">
-          <a href="{% url 'submit_devis' %}" class="btn btn-lg btn-success">Soumettre la Demande de Devis ({{ devis_panier|length }} articles)</a>
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <a href="{% url 'devis:clear_devis' %}" class="btn btn-sm btn-outline-warning">Vider la liste</a>
+
+          {# Utilisation de la balise simple pour le décompte total #}
+          <a href="{% url 'devis:submit_devis' %}" class="btn btn-lg btn-success shadow"><i class="fas fa-paper-plane"></i> Soumettre la Demande de Devis ({% devis_count %}articles)</a>
         </div>
       {% else %}
-        <div class="alert alert-info text-center" role="alert">Votre liste de devis est actuellement vide.</div>
+        <div class="alert alert-info text-center py-4" role="alert">Votre liste de devis est actuellement vide. Commencez à ajouter des articles !</div>
         <div class="text-center">
-          <a href="{% url 'liste_produits' %}" class="btn btn-primary btn-lg">Parcourir le Catalogue</a>
+          {# Le lien vers le catalogue utilise maintenant le namespace 'catalogue' #}
+          <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-primary btn-lg">Parcourir le Catalogue</a>
         </div>
       {% endif %}
     </div>

@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-jyzqmvo^!46okx0ixl40d2deidli5vpzy%u-!m8zxwoz22)b3a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,11 +38,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # application installe:
     'utilisateur',
     'catalogue',
     'devis',
     'pages',
 ]
+
+# Redirection après une connexion réussie vers votre application utilisateur
+LOGIN_REDIRECT_URL = '/utilisateur/profil/'
+
+# Redirection après la déconnexion (par exemple, vers l'accueil du catalogue)
+LOGOUT_REDIRECT_URL = '/'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -123,12 +132,8 @@ USE_TZ = True
 # ----------------- CONFIGURATION DES STATIQUES -----------------
 
 # 1. STATIC_URL: URL utilisée pour les fichiers statiques (CSS, JS, etc.)
-STATIC_URL = 'static/'
-
-# 2. STATICFILES_DIRS: Le répertoire où VOUS placez les fichiers statiques manuellement
-# C'est ici que vous mettrez votre fichier CSS principal.
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
 ]
 
 # 3. STATIC_ROOT: L'endroit où Django va COLLECTER tous les fichiers statiques pour le déploiement

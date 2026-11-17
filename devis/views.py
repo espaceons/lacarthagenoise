@@ -1,12 +1,11 @@
 # devis/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-# Pour les messages de succès/erreur (optionnel mais recommandé)
 from django.contrib import messages
 
 from catalogue.models import Produit
 from .models import DevisRequest
-# from .forms import DevisForm  # (À créer pour la fonction submit_devis)
+# from .forms import DevisForm  # (À décommenter plus tard pour le formulaire de soumission)
 
 # Clé de session utilisée pour stocker le panier de devis
 DEVIS_SESSION_KEY = 'devis_panier'
@@ -14,7 +13,6 @@ DEVIS_SESSION_KEY = 'devis_panier'
 # -------------------------------------------
 # 1. ADD / REMOVE / CLEAR LOGIC (Session Management)
 # -------------------------------------------
-
 
 def add_to_devis(request, produit_id):
     """Ajoute un produit à la liste de devis stockée dans la session."""
@@ -39,6 +37,7 @@ def add_to_devis(request, produit_id):
             request, f"'{produit.nom}' ajouté à votre liste de devis.")
 
     request.session[DEVIS_SESSION_KEY] = devis_panier
+    request.session.modified = True
 
     # Rediriger vers la page précédente (catalogue ou détail produit)
     return redirect(request.META.get('HTTP_REFERER', reverse('catalogue:liste_produits')))
@@ -58,12 +57,13 @@ def remove_from_devis(request, produit_id):
         else:
             # Retirer complètement
             del devis_panier[produit_key]
-            messages.error(request, f"Article retiré de la liste de devis.")
+            messages.error(request, "Article retiré de la liste de devis.")
 
         request.session[DEVIS_SESSION_KEY] = devis_panier
         request.session.modified = True  # Assurer que Django sauvegarde la session
 
-    return redirect('view_devis')
+    # ✅ CORRECTION : Utilisation du namespace 'devis:'
+    return redirect('devis:view_devis')
 
 
 def clear_devis(request):
@@ -72,19 +72,44 @@ def clear_devis(request):
         del request.session[DEVIS_SESSION_KEY]
         messages.success(request, "Votre liste de devis a été vidée.")
 
-    return redirect('view_devis')
+    # ✅ CORRECTION : Utilisation du namespace 'devis:'
+    return redirect('devis:view_devis')
+
 
 # -------------------------------------------
 # 2. VIEW DEVIS (Affichage)
 # -------------------------------------------
 
-
 def view_devis(request):
     """Affiche le contenu du panier et rend le template view_devis.html."""
-    devis_panier = request.session.get(DEVIS_SESSION_KEY, {})
+
+    # 1. Récupérer les données brutes de la session
+    devis_panier_session = request.session.get(DEVIS_SESSION_KEY, {})
+
+    # 2. Préparer une liste sécurisée d'articles complets
+    devis_items = []
+
+    # Parcourir chaque ID de produit dans la session
+    for produit_id, item_data in devis_panier_session.items():
+        try:
+            # Tenter de récupérer l'objet Produit complet
+            produit = Produit.objects.get(pk=produit_id)
+
+            # Ajouter l'objet produit et la quantité à la liste des articles
+            devis_items.append({
+                'produit': produit,  # L'objet Produit complet
+                'quantite': item_data.get('quantite', 1),
+            })
+
+        except Produit.DoesNotExist:
+            # Si le produit n'existe plus en BD, on l'ignore
+            print(
+                f"ATTENTION: Produit ID {produit_id} dans la session n'existe plus en BD.")
+            continue
 
     context = {
-        'devis_panier': devis_panier,
+        'devis_items': devis_items,
+        'devis_panier_session': devis_panier_session
     }
     return render(request, 'devis/view_devis.html', context)
 
@@ -100,14 +125,24 @@ def submit_devis(request):
     if not devis_panier:
         messages.error(
             request, "Impossible de soumettre : votre liste de devis est vide.")
-        return redirect('view_devis')
+        return redirect('devis:view_devis')
 
-    # LOGIQUE FORMULAIRE (à compléter avec un Formulaire Django)
-    # 1. Créer le formulaire de contact (nom, email, téléphone, message) dans devis/forms.py
-    # 2. Gérer la soumission du formulaire (POST) :
-    # if request.method == 'POST':
-    #     form = DevisForm(request.POST)
-    #     if form.is_valid():
-    #         # 3. Formatter le contenu de la demande (résumé du panier)
-    #         contenu_text = "\n".join([
-    #             f"- {item['nom']} (Réf: {item['
+    # Si l'utilisateur a soumis le formulaire (méthode POST)
+    if request.method == 'POST':
+        # TODO: Ici, vous pourrez récupérer les données du formulaire (nom, email, etc.)
+        # et éventuellement les sauvegarder en base de données avec DevisRequest.
+
+        # 🚨 SUPPRESSION DE LA LISTE DE DEVIS APRÈS SOUMISSION 🚨
+        if DEVIS_SESSION_KEY in request.session:
+            del request.session[DEVIS_SESSION_KEY]
+            request.session.modified = True
+
+        messages.success(
+            request, "Votre demande de devis a été envoyée avec succès ! Nous vous recontacterons bientôt.")
+
+        # Rediriger vers l'accueil ou une page de confirmation
+        return redirect('catalogue:liste_produits')
+
+    # Si c'est un affichage simple (GET), on affiche le formulaire de soumission
+    context = {}
+    return render(request, 'devis/submit_devis.html', context)
