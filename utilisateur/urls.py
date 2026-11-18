@@ -19,4 +19,8 @@ urlpatterns = [
 
     # Profil utilisateur
     path('profil/', views.profil, name='profil'),
+    
+    # --- Gestion des utilisateurs par le Staff ---
+    path('administration/utilisateurs/', views.liste_utilisateurs_admin, name='admin_utilisateurs'),
+    path('administration/utilisateurs/<int:user_id>/modifier/', views.modifier_utilisateur_admin, name='modifier_utilisateur_admin'),
 ]

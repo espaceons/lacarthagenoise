@@ -27,4 +27,8 @@ urlpatterns = [
     # 5. Optionnel : Vider toute la liste de devis en une fois
     # Exemple : /devis/clear/
     path('clear/', views.clear_devis, name='clear_devis'),
+    
+    # Espace Administrateur personnalisé
+    path('administration/commandes/', views.gestion_commandes, name='gestion_commandes'),
+    path('administration/commandes/<int:devis_id>/statut/', views.changer_statut_commande, name='changer_statut_commande'),
 ]

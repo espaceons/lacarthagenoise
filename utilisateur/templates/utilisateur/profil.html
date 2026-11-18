@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-10">
         <div class="card shadow-sm border-0 my-4">
             <div class="card-body p-4 p-md-5">
                 <div class="d-flex align-items-center mb-4">
@@ -45,7 +45,7 @@
                     <div class="col-sm-8">{{ user.profil.adresse|default:"Non renseignée" }}</div>
                 </div>
 
-                <!-- Si le client est un Revendeur ou Artisan, on affiche les infos pro -->
+                <!-- Informations professionnelles si Revendeur ou Artisan -->
                 {% if user.profil.type_client != 'particulier' %}
                     <hr class="my-4">
                     <h4 class="mb-3">Informations Professionnelles</h4>
@@ -60,6 +60,49 @@
                         <div class="col-sm-8">{{ user.profil.matricule_fiscal|default:"Non renseigné" }}</div>
                     </div>
                 {% endif %}
+
+                <!-- Section : Historique et Suivi des Demandes de Devis -->
+                <hr class="my-5">
+                <h4 class="mb-3"><i class="fas fa-history text-secondary"></i> Mes Demandes de Devis</h4>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Devis</th>
+                                <th>Date de demande</th>
+                                <th>Statut de traitement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for devis in mes_devis %}
+                                <tr>
+                                    <td class="fw-bold">#{{ devis.id }}</td>
+                                    <td>{{ devis.date_creation|date:"d/m/Y à H:i" }}</td>
+                                    <td>
+                                        {% if devis.statut == 'attente' %}
+                                            <span class="badge bg-warning text-dark">{{ devis.get_statut_display }}</span>
+                                        {% elif devis.statut == 'valide' %}
+                                            <span class="badge bg-primary">{{ devis.get_statut_display }}</span>
+                                        {% elif devis.statut == 'termine' %}
+                                            <span class="badge bg-success">{{ devis.get_statut_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ devis.get_statut_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">
+                                        Vous n'avez effectué aucune demande de devis pour le moment.
+                                        <br>
+                                        <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-sm btn-dark mt-2">Découvrir le catalogue</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
                 <div class="d-flex justify-content-end mt-4">
                     <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary">

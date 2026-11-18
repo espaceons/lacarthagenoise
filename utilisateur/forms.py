@@ -48,3 +48,20 @@ class InscriptionForm(UserCreationForm):
             profil.matricule_fiscal = self.cleaned_data.get('matricule_fiscal')
             profil.save()
         return user
+
+# utilisateur/forms.py (Ajouter cette classe)
+
+
+class AdminProfilForm(forms.ModelForm):
+    class Meta:
+        model = ProfilUtilisateur
+        fields = ['type_client', 'telephone', 'adresse',
+                  'nom_entreprise', 'matricule_fiscal']
+        widgets = {
+            'adresse': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'

@@ -1,18 +1,23 @@
 # catalogue/urls.py
 from django.urls import path
-from .views import ProduitListView, ProduitDetailView
-
+from . import views
 
 app_name = 'catalogue'
 
 urlpatterns = [
-    # 1. Chemin Racine (le plus spécifique)
-    path('', ProduitListView.as_view(), name='liste_produits'),
+    # --- Vues Publiques du Catalogue ---
+    path('', views.ProduitListView.as_view(), name='liste_produits'),
+    path('categorie/<slug:slug>/', views.ProduitListView.as_view(),
+         name='liste_par_categorie'),
+    path('produit/<int:pk>/', views.ProduitDetailView.as_view(),
+         name='detail_produit'),
 
-    # 2. Chemin Détail Produit (spécifique avec PK)
-    path('produit/<int:pk>/', ProduitDetailView.as_view(), name='detail_produit'),
-
-    # 3. Chemin Catégorie (le plus générique)
-    # Laissez ce chemin à la fin.
-    path('<slug:slug>/', ProduitListView.as_view(), name='liste_par_categorie'),
+    # --- Vues de Gestion pour le Staff / Administrateur ---
+    path('gestion/produits/', views.liste_produits_admin, name='admin_produits'),
+    path('gestion/produits/ajouter/',
+         views.ajouter_produit, name='ajouter_produit'),
+    path('gestion/produits/<int:produit_id>/modifier/',
+         views.modifier_produit, name='modifier_produit'),
+    path('gestion/produits/<int:produit_id>/supprimer/',
+         views.supprimer_produit, name='supprimer_produit'),
 ]
