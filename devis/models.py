@@ -27,22 +27,62 @@ class DevisRequest(models.Model):
 class Devis(models.Model):
     STATUT_CHOICES = [
         ('attente', 'En attente de validation'),
-        ('valide', 'Validé'), ('Livraison', 'En Cour de Livraison'),
+        ('valide', 'Validé'),
+        ('Livraison', 'En Cour de Livraison'),
         ('termine', 'Prêt / Livré'),
         ('annule', 'Annulé'),
     ]
 
     utilisateur = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True)
+        User, on_delete=models.SET_NULL, null=True, blank=True
+    )
     nom_client = models.CharField(max_length=100, blank=True, null=True)
     email_client = models.EmailField(blank=True, null=True)
     telephone = models.CharField(max_length=20, blank=True, null=True)
     date_creation = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(
-        max_length=20, choices=STATUT_CHOICES, default='attente')
+        max_length=20, choices=STATUT_CHOICES, default='attente'
+    )
 
     def __str__(self):
         return f"Devis #{self.id} - {self.get_statut_display()}"
+
+    def save(self, *args, **kwargs):
+        ancien_statut = None
+        if self.pk:
+            ancien_devis = Devis.objects.filter(pk=self.pk).first()
+            if ancien_devis:
+                ancien_statut = ancien_devis.statut
+
+        super().save(*args, **kwargs)
+
+        # Mise à jour automatique de quantite_vendue (et quantite_annulee)
+        if ancien_statut != self.statut:
+            for ligne in self.lignedevis_set.select_related('produit').all():
+                produit = ligne.produit
+                modifie = False
+
+                # Passage vers 'termine' -> incrémenter quantite_vendue
+                if self.statut == 'termine' and ancien_statut != 'termine':
+                    produit.quantite_vendue += ligne.quantite
+                    if ancien_statut == 'annule':
+                        produit.quantite_annulee = max(
+                            produit.quantite_annulee - ligne.quantite, 0)
+                    modifie = True
+
+                # Sortie de 'termine' vers un autre statut -> décrémenter quantite_vendue
+                elif ancien_statut == 'termine' and self.statut != 'termine':
+                    produit.quantite_vendue = max(
+                        produit.quantite_vendue - ligne.quantite, 0)
+                    modifie = True
+
+                # Passage vers 'annule' -> incrémenter quantite_annulee
+                if self.statut == 'annule' and ancien_statut != 'annule':
+                    produit.quantite_annulee += ligne.quantite
+                    modifie = True
+
+                if modifie:
+                    produit.save()
 
 
 class LigneDevis(models.Model):

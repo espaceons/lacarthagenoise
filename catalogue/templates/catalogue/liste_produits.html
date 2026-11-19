@@ -1,25 +1,95 @@
-{% extends 'base.html' %} {% block title %}
+{% extends 'base.html' %}
+
+{% block title %}
   Catalogue - {{ block.super }}
-{% endblock %} {% block content %}
-  <h1>Notre Catalogue</h1>
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold mb-0">Notre Catalogue</h1>
+    {% if user.is_staff %}
+      <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
+        <i class="fas fa-boxes me-1"></i> Gérer les articles
+      </a>
+    {% endif %}
+  </div>
+
   <div class="row">
     {% for produit in produits %}
       <div class="col-md-4 mb-4">
-        <div class="card h-100">
+        <div class="card h-100 shadow-sm border-0">
           <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}">
             {% if produit.image %}
-              <img src="{{ produit.image.url }}" class="card-img-top" alt="{{ produit.nom }}" />
+              <img src="{{ produit.image.url }}" class="card-img-top" alt="{{ produit.nom }}" style="height: 220px; object-fit: cover;" />
+            {% else %}
+              <div class="bg-light d-flex align-items-center justify-content-center text-muted" style="height: 220px;">
+                <i class="fas fa-image fa-2x"></i>
+              </div>
             {% endif %}
           </a>
-          <div class="card-body">
-            <h5 class="card-title">{{ produit.nom }}</h5>
-            <p class="card-text text-muted">Réf: {{ produit.reference }}</p>
-            <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="btn btn-sm btn-outline-primary">Détails</a>
+
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+              <h5 class="card-title mb-0">{{ produit.nom }}</h5>
+              {% if produit.disponible and produit.quantite_restante > 0 %}
+                <span class="badge bg-success text-nowrap">En stock ({{ produit.quantite_restante }})</span>
+              {% else %}
+                <span class="badge bg-danger text-nowrap">Épuisé</span>
+              {% endif %}
+            </div>
+
+            <p class="card-text text-muted small mb-2">Réf : {{ produit.reference }}</p>
+
+            {% if produit.prix %}
+              <p class="fw-bold text-dark mb-2">{{ produit.prix }} DT</p>
+            {% endif %}
+
+            <!-- Indicateurs de stock -->
+            <div class="bg-light rounded p-2 mb-3 small">
+              <div class="d-flex justify-content-between">
+                <span>Total :</span>
+                <strong>{{ produit.quantite_totale }}</strong>
+              </div>
+              <div class="d-flex justify-content-between">
+                <span>Restant :</span>
+                <strong class="text-success">{{ produit.quantite_restante }}</strong>
+              </div>
+              {% if user.is_staff %}
+                <hr class="my-1">
+                <div class="d-flex justify-content-between text-primary">
+                  <span>Vendue :</span>
+                  <strong>{{ produit.quantite_vendue }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-danger">
+                  <span>Annulée :</span>
+                  <strong>{{ produit.quantite_annulee }}</strong>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Actions en bas de carte -->
+            <div class="mt-auto d-flex gap-2">
+              <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                <i class="fas fa-eye me-1"></i> Détails
+              </a>
+
+              {% if produit.disponible and produit.quantite_restante > 0 %}
+                <a href="{% url 'devis:add_to_devis' produit.pk %}" class="btn btn-sm btn-dark flex-grow-1">
+                  <i class="fas fa-plus me-1"></i> Ajouter au devis
+                </a>
+              {% else %}
+                <button type="button" class="btn btn-sm btn-secondary flex-grow-1" disabled>
+                  Indisponible
+                </button>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
     {% empty %}
-      <p>Aucun produit disponible.</p>
+      <div class="col-12">
+        <div class="alert alert-info text-center">Aucun produit disponible.</div>
+      </div>
     {% endfor %}
   </div>
 {% endblock %}

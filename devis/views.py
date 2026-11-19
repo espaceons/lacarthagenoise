@@ -1,9 +1,12 @@
 # devis/views.py
+from .models import Devis
+from django.shortcuts import redirect, get_object_or_404
+from django.db.models import F
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-
+from django.db import transaction
 from catalogue.models import Produit
 # Assurez-vous d'importer vos modèles de devis
 from .models import Devis, LigneDevis
@@ -180,16 +183,48 @@ def gestion_commandes(request):
     return render(request, 'devis/gestion_commandes.html', context)
 
 
+
+
 @staff_member_required(login_url='utilisateur:login')
+@transaction.atomic
 def changer_statut_commande(request, devis_id):
-    """Met à jour le statut d'un devis/commande depuis le tableau de bord."""
+    """Met à jour le statut d'un devis/commande et met à jour les quantités."""
     if request.method == 'POST':
         devis = get_object_or_404(Devis, id=devis_id)
         nouveau_statut = request.POST.get('statut')
-        
-        if nouveau_statut in dict(Devis.STATUT_CHOICES):
+        ancien_statut = devis.statut
+
+        if nouveau_statut in dict(Devis.STATUT_CHOICES) and nouveau_statut != ancien_statut:
+            for ligne in devis.lignedevis_set.select_related('produit').all():
+                produit = ligne.produit
+                modifie = False
+
+                # Passage à 'termine' -> incrémenter quantite_vendue
+                if nouveau_statut == 'termine':
+                    produit.quantite_vendue = (
+                        produit.quantite_vendue or 0) + ligne.quantite
+                    if ancien_statut == 'annule':
+                        produit.quantite_annulee = max(
+                            (produit.quantite_annulee or 0) - ligne.quantite, 0)
+                    modifie = True
+
+                # Sortie de 'termine' vers un autre statut -> décrémenter quantite_vendue
+                elif ancien_statut == 'termine':
+                    produit.quantite_vendue = max(
+                        (produit.quantite_vendue or 0) - ligne.quantite, 0)
+                    modifie = True
+
+                # Passage à 'annule' -> incrémenter quantite_annulee
+                if nouveau_statut == 'annule':
+                    produit.quantite_annulee = (
+                        produit.quantite_annulee or 0) + ligne.quantite
+                    modifie = True
+
+                if modifie:
+                    produit.save()
+
             devis.statut = nouveau_statut
             devis.save()
             messages.success(request, f"Le statut du devis #{devis.id} a été mis à jour.")
-            
+
     return redirect('devis:gestion_commandes')
