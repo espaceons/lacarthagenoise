@@ -46,39 +46,71 @@
 
             <!-- Indicateurs de stock -->
             <div class="bg-light rounded p-2 mb-3 small">
-              <div class="d-flex justify-content-between">
+              {% comment %} <div class="d-flex justify-content-between">
                 <span>Total :</span>
                 <strong>{{ produit.quantite_totale }}</strong>
               </div>
               <div class="d-flex justify-content-between">
                 <span>Restant :</span>
                 <strong class="text-success">{{ produit.quantite_restante }}</strong>
-              </div>
+              </div> {% endcomment %}
               {% if user.is_staff %}
                 <hr class="my-1">
                 <div class="d-flex justify-content-between text-primary">
                   <span>Vendue :</span>
-                  <strong>{{ produit.quantite_vendue }}</strong>
+                  <strong>{{ produit.quantite_vendue|default:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-warning">
+                  <span>En Attente de Validation :</span>
+                  <strong>{{ produit.quantite_en_attente|default:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-secondary">
+                  <span>Validé :</span>
+                  <strong>{{ produit.quantite_validee|default:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-info">
+                  <span>En Cour de Livraison :</span>
+                  <strong>{{ produit.quantite_en_livraison|default:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between text-success">
+                  <span>Livré :</span>
+                  <strong>{{ produit.quantite_livree|default:0 }}</strong>
                 </div>
                 <div class="d-flex justify-content-between text-danger">
                   <span>Annulée :</span>
-                  <strong>{{ produit.quantite_annulee }}</strong>
+                  <strong>{{ produit.quantite_statut_annule|default:0 }}</strong>
                 </div>
               {% endif %}
             </div>
 
             <!-- Actions en bas de carte -->
-            <div class="mt-auto d-flex gap-2">
-              <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
-                <i class="fas fa-eye me-1"></i> Détails
-              </a>
+            <div class="mt-auto">
+              <div class="mb-2">
+                <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                  <i class="fas fa-eye me-1"></i> Détails
+                </a>
+              </div>
 
               {% if produit.disponible and produit.quantite_restante > 0 %}
-                <a href="{% url 'devis:add_to_devis' produit.pk %}" class="btn btn-sm btn-dark flex-grow-1">
-                  <i class="fas fa-plus me-1"></i> Ajouter au devis
-                </a>
+                <form method="post" action="{% url 'devis:add_to_devis' produit.pk %}" class="d-flex gap-2">
+                  {% csrf_token %}
+                  <input
+                    type="number"
+                    name="quantite_demander"
+                    value="1"
+                    min="1"
+                    max="{{ produit.quantite_restante }}"
+                    class="form-control form-control-sm text-center"
+                    style="max-width: 85px;"
+                    aria-label="Quantité demandée"
+                    required
+                  />
+                  <button type="submit" class="btn btn-sm btn-dark flex-grow-1">
+                    <i class="fas fa-plus me-1"></i> Ajouter au devis
+                  </button>
+                </form>
               {% else %}
-                <button type="button" class="btn btn-sm btn-secondary flex-grow-1" disabled>
+                <button type="button" class="btn btn-sm btn-secondary w-100" disabled>
                   Indisponible
                 </button>
               {% endif %}

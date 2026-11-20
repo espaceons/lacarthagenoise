@@ -1,8 +1,8 @@
 # devis/models.py
 from django.db import models
+from django.contrib.auth.models import User
 from catalogue.models import Produit
 
-from django.contrib.auth.models import User
 
 class DevisRequest(models.Model):
     # Informations du client
@@ -10,14 +10,12 @@ class DevisRequest(models.Model):
     email = models.EmailField()
     telephone = models.CharField(max_length=20, blank=True)
     message = models.TextField(
-        blank=True, help_text="Informations supplémentaires ou questions.")
+        blank=True, help_text="Informations supplémentaires ou questions."
+    )
 
     # Informations de la demande
     date_soumission = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(max_length=50, default='Nouveau')
-
-    # Le contenu du devis sera stocké dans un champ TEXT ou JSON (plus avancé)
-    # Pour simplifier, nous stockerons ici un résumé du panier
     contenu_devis = models.TextField()
 
     def __str__(self):
@@ -50,39 +48,47 @@ class Devis(models.Model):
     def save(self, *args, **kwargs):
         ancien_statut = None
         if self.pk:
-            ancien_devis = Devis.objects.filter(pk=self.pk).first()
+            ancien_devis = Devis.objects.filter(
+                pk=self.pk).values('statut').first()
             if ancien_devis:
-                ancien_statut = ancien_devis.statut
+                ancien_statut = ancien_devis['statut']
 
         super().save(*args, **kwargs)
 
-        # Mise à jour automatique de quantite_vendue (et quantite_annulee)
-        if ancien_statut != self.statut:
+        # Mise à jour unique de quantite_vendue et quantite_annulee lors d'un changement de statut
+        if self.pk and ancien_statut != self.statut:
             for ligne in self.lignedevis_set.select_related('produit').all():
                 produit = ligne.produit
+                quantite_demander = ligne.quantite or 0
                 modifie = False
 
                 # Passage vers 'termine' -> incrémenter quantite_vendue
                 if self.statut == 'termine' and ancien_statut != 'termine':
-                    produit.quantite_vendue += ligne.quantite
+                    produit.quantite_vendue = (
+                        produit.quantite_vendue or 0) + quantite_demander
                     if ancien_statut == 'annule':
                         produit.quantite_annulee = max(
-                            produit.quantite_annulee - ligne.quantite, 0)
+                            (produit.quantite_annulee or 0) -
+                            quantite_demander, 0
+                        )
                     modifie = True
 
                 # Sortie de 'termine' vers un autre statut -> décrémenter quantite_vendue
                 elif ancien_statut == 'termine' and self.statut != 'termine':
                     produit.quantite_vendue = max(
-                        produit.quantite_vendue - ligne.quantite, 0)
+                        (produit.quantite_vendue or 0) - quantite_demander, 0
+                    )
                     modifie = True
 
                 # Passage vers 'annule' -> incrémenter quantite_annulee
                 if self.statut == 'annule' and ancien_statut != 'annule':
-                    produit.quantite_annulee += ligne.quantite
+                    produit.quantite_annulee = (
+                        produit.quantite_annulee or 0) + quantite_demander
                     modifie = True
 
                 if modifie:
-                    produit.save()
+                    produit.save(update_fields=[
+                                 'quantite_vendue', 'quantite_annulee'])
 
 
 class LigneDevis(models.Model):

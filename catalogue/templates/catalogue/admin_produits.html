@@ -20,6 +20,8 @@
                         <th>Nom du produit</th>
                         <th>Catégorie</th>
                         <th>Prix</th>
+                        <th>Stock (Total / Vendu / Restant)</th>
+                        <th>Détail par statut</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -34,7 +36,12 @@
                                     <span class="badge bg-secondary">Aucune</span>
                                 {% endif %}
                             </td>
-                            <td class="fw-bold">{{ produit.nom }}</td>
+                            <td>
+                                <div class="fw-bold">{{ produit.nom }}</div>
+                                {% if produit.reference %}
+                                    <small class="text-muted">Réf : {{ produit.reference }}</small>
+                                {% endif %}
+                            </td>
                             <td>{{ produit.categorie.nom|default:"Sans catégorie" }}</td>
                             <td>
                                 {% if produit.prix %}
@@ -42,6 +49,32 @@
                                 {% else %}
                                     Sur devis
                                 {% endif %}
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div>Total : <strong>{{ produit.quantite_totale|default:0 }}</strong></div>
+                                    <div class="text-primary">Vendu : <strong>{{ produit.quantite_vendue|default:0 }}</strong></div>
+                                    <div class="text-success">Restant : <strong>{{ produit.quantite_restante|default:0 }}</strong></div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column gap-1 small">
+                                    <span class="badge bg-warning text-dark text-start">
+                                        En attente : {{ produit.qte_attente|default:0 }}
+                                    </span>
+                                    <span class="badge bg-info text-dark text-start">
+                                        Validé : {{ produit.qte_valide|default:0 }}
+                                    </span>
+                                    <span class="badge bg-secondary text-start">
+                                        En livraison : {{ produit.qte_livraison|default:0 }}
+                                    </span>
+                                    <span class="badge bg-success text-start">
+                                        Prêt / Livré : {{ produit.qte_termine|default:0 }}
+                                    </span>
+                                    <span class="badge bg-danger text-start">
+                                        Annulé : {{ produit.qte_annule|default:0 }}
+                                    </span>
+                                </div>
                             </td>
                             <td>
                                 {% if produit.disponible %}
@@ -61,7 +94,7 @@
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
+                            <td colspan="8" class="text-center py-4 text-muted">
                                 Aucun produit enregistré dans le catalogue.
                             </td>
                         </tr>

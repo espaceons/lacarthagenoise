@@ -1,4 +1,7 @@
 # catalogue/views.py
+from .models import Produit
+from django.shortcuts import render
+from django.db.models import Sum, Q
 from django.views.generic import ListView, DetailView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
@@ -41,14 +44,44 @@ class ProduitDetailView(DetailView):
 # GESTION DU CATALOGUE PAR LE STAFF / ADMIN
 # ==========================================
 
+
+
+
 @staff_member_required(login_url='utilisateur:login')
 def liste_produits_admin(request):
-    """Tableau de bord administrateur pour lister et gérer tous les produits."""
-    produits = Produit.objects.all().order_by('-id')
-    context = {
-        'produits': produits,
-    }
-    return render(request, 'catalogue/admin_produits.html', context)
+    produits = (
+        Produit.objects.select_related('categorie')
+        .annotate(
+            qte_attente=Sum(
+                'lignedevis__quantite',
+                filter=Q(lignedevis__devis__statut='attente'),
+                default=0,
+            ),
+            qte_valide=Sum(
+                'lignedevis__quantite',
+                filter=Q(lignedevis__devis__statut='valide'),
+                default=0,
+            ),
+            qte_livraison=Sum(
+                'lignedevis__quantite',
+                filter=Q(lignedevis__devis__statut='Livraison'),
+                default=0,
+            ),
+            qte_termine=Sum(
+                'lignedevis__quantite',
+                filter=Q(lignedevis__devis__statut='termine'),
+                default=0,
+            ),
+            qte_annule=Sum(
+                'lignedevis__quantite',
+                filter=Q(lignedevis__devis__statut='annule'),
+                default=0,
+            ),
+        )
+        .order_by('-id')
+    )
+
+    return render(request, 'catalogue/admin_produits.html', {'produits': produits})
 
 
 @staff_member_required(login_url='utilisateur:login')
