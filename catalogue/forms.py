@@ -1,6 +1,34 @@
 # catalogue/forms.py
 from django import forms
-from .models import Produit, Categorie
+from .models import Produit, Categorie, Catalogue
+
+
+class CatalogueForm(forms.ModelForm):
+    class Meta:
+        model = Catalogue
+        fields = ['nom', 'description', 'actif']
+        widgets = {
+            'nom': forms.TextInput(attrs={
+                'placeholder': 'Ex. : Catalogue Général, Collection Été...',
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Description courte du catalogue...',
+            }),
+            'actif': forms.CheckboxInput(),
+        }
+        labels = {
+            'nom': 'Nom du catalogue',
+            'description': 'Description',
+            'actif': 'Afficher dans la vitrine',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            existing = field.widget.attrs.get('class', '')
+            css = 'form-check-input' if field_name == 'actif' else 'form-control'
+            field.widget.attrs['class'] = f"{existing} {css}".strip()
 
 
 class CategorieForm(forms.ModelForm):
@@ -34,6 +62,7 @@ class ProduitForm(forms.ModelForm):
             'reference',
             'nom',
             'categorie',
+            'catalogues',
             'description',
             'prix',
             'quantite_totale',
@@ -44,10 +73,14 @@ class ProduitForm(forms.ModelForm):
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+            'catalogues': forms.SelectMultiple(attrs={'size': 4}),
             'prix': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
             'quantite_totale': forms.NumberInput(attrs={'min': 0}),
             'quantite_vendue': forms.NumberInput(attrs={'min': 0}),
             'quantite_annulee': forms.NumberInput(attrs={'min': 0}),
+        }
+        labels = {
+            'catalogues': 'Catalogues associés',
         }
 
     def __init__(self, *args, **kwargs):
@@ -56,7 +89,7 @@ class ProduitForm(forms.ModelForm):
             existing_class = field.widget.attrs.get('class', '')
             if field_name == 'disponible':
                 bootstrap_class = 'form-check-input'
-            elif field_name == 'categorie':
+            elif field_name in ('categorie', 'catalogues'):
                 bootstrap_class = 'form-select'
             else:
                 bootstrap_class = 'form-control'

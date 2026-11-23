@@ -14,11 +14,14 @@
     </div>
 
     <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'catalogue:liste_catalogues_admin' %}" class="btn btn-outline-primary btn-sm">
+        <i class="fas fa-book-open me-1"></i> Gérer les catalogues
+      </a>
       <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-dark btn-sm">
         <i class="fas fa-tags me-1"></i> Gérer les catégories
       </a>
       <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="fas fa-store me-1"></i> Voir le catalogue
+        <i class="fas fa-store me-1"></i> Voir la vitrine
       </a>
     </div>
   </div>
@@ -71,6 +74,21 @@
                 <div class="text-danger small mt-1">{{ form.categorie.errors|striptags }}</div>
               {% endif %}
             </div>
+
+            {% if form.catalogues %}
+              <div class="mb-2">
+                <label for="{{ form.catalogues.id_for_label }}" class="form-label fw-semibold small mb-1">
+                  {{ form.catalogues.label|default:"Catalogues" }}
+                </label>
+                {{ form.catalogues }}
+                <small class="text-muted d-block" style="font-size: 0.75rem;">
+                  Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs catalogues.
+                </small>
+                {% if form.catalogues.errors %}
+                  <div class="text-danger small mt-1">{{ form.catalogues.errors|striptags }}</div>
+                {% endif %}
+              </div>
+            {% endif %}
 
             <div class="row g-2 mb-2">
               <div class="col-6">
@@ -162,8 +180,8 @@
             type="search"
             id="filtreProduits"
             class="form-control form-control-sm"
-            style="max-width: 240px;"
-            placeholder="Filtrer par nom, réf. ou catégorie..."
+            style="max-width: 260px;"
+            placeholder="Filtrer par nom, réf., catégorie ou catalogue..."
             aria-label="Filtrer les articles"
           />
         </div>
@@ -175,7 +193,7 @@
                 <tr>
                   <th class="ps-3" style="width: 65px;">Image</th>
                   <th>Produit</th>
-                  <th>Catégorie</th>
+                  <th>Catégorie &amp; Catalogues</th>
                   <th>Prix</th>
                   <th>Stock</th>
                   <th>Détail par statut</th>
@@ -205,11 +223,19 @@
                         <small class="text-muted">Réf : <code>{{ produit.reference }}</code></small>
                       {% endif %}
                     </td>
-                    <td class="produit-categorie">
+                    <td class="produit-classement">
                       {% if produit.categorie %}
                         <span class="badge bg-light text-dark border">{{ produit.categorie.nom }}</span>
                       {% else %}
                         <span class="text-muted small">Sans catégorie</span>
+                      {% endif %}
+
+                      {% if produit.catalogues.all %}
+                        <div class="mt-1 d-flex flex-wrap gap-1">
+                          {% for cat_b in produit.catalogues.all %}
+                            <span class="badge bg-info text-dark" style="font-size: 0.7rem;">{{ cat_b.nom }}</span>
+                          {% endfor %}
+                        </div>
                       {% endif %}
                     </td>
                     <td class="text-nowrap fw-semibold">
@@ -316,8 +342,8 @@
 
         rows.forEach(function (row) {
           const info = row.querySelector('.produit-info')?.textContent.toLowerCase() || '';
-          const cat = row.querySelector('.produit-categorie')?.textContent.toLowerCase() || '';
-          const match = info.includes(terme) || cat.includes(terme);
+          const classement = row.querySelector('.produit-classement')?.textContent.toLowerCase() || '';
+          const match = info.includes(terme) || classement.includes(terme);
           row.style.display = match ? '' : 'none';
           if (match) visibles += 1;
         });

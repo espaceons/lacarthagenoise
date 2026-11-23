@@ -3,7 +3,26 @@ from django.db import models
 from django.db.models.aggregates import Sum
 from django.utils.text import slugify
 
+class Catalogue(models.Model):
+    nom = models.CharField(max_length=150, verbose_name="Nom du catalogue")
+    slug = models.SlugField(unique=True, max_length=150, blank=True)
+    description = models.TextField(blank=True, verbose_name="Description")
+    actif = models.BooleanField(default=True, verbose_name="Actif")
+    date_creation = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Catalogue"
+        verbose_name_plural = "Catalogues"
+        ordering = ['-date_creation']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nom)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.nom
+    
 class Categorie(models.Model):
     nom = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, max_length=100, blank=True)
@@ -23,6 +42,12 @@ class Produit(models.Model):
         on_delete=models.CASCADE,
         related_name='produits',
         verbose_name="Catégorie",
+    )
+    catalogues = models.ManyToManyField(
+        Catalogue,
+        blank=True,
+        related_name='produits',
+        verbose_name="Catalogues",
     )
     reference = models.CharField(max_length=50, unique=True, verbose_name="Référence")
     nom = models.CharField(max_length=200, verbose_name="Nom du produit")

@@ -1,18 +1,32 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Catalogue - {{ block.super }}
+  {% if catalogue_selectionne %}{{ catalogue_selectionne.nom }} - {% endif %}Catalogue - {{ block.super }}
 {% endblock %}
 
 {% block content %}
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-    <h1 class="fw-bold mb-0">Notre Catalogue</h1>
+    <div>
+      <h1 class="fw-bold mb-0">
+        {% if catalogue_selectionne %}
+          {{ catalogue_selectionne.nom }}
+        {% else %}
+          Notre Catalogue
+        {% endif %}
+      </h1>
+      {% if catalogue_selectionne and catalogue_selectionne.description %}
+        <p class="text-muted small mb-0 mt-1">{{ catalogue_selectionne.description }}</p>
+      {% endif %}
+    </div>
 
     {% if user.is_staff %}
       <div class="d-flex flex-wrap gap-2">
         {% comment %} <a href="{% url 'catalogue:ajouter_produit' %}" class="btn btn-success btn-sm">
           <i class="fas fa-plus me-1"></i> Ajouter un produit
         </a> {% endcomment %}
+        <a href="{% url 'catalogue:liste_catalogues_admin' %}" class="btn btn-outline-success btn-sm">
+          <i class="fas fa-book-open me-1"></i> Gérer les catalogues
+        </a>
         <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
           <i class="fas fa-boxes me-1"></i> Gérer les articles
         </a>
@@ -23,18 +37,51 @@
     {% endif %}
   </div>
 
-  <!-- Filtre par catégories (si `categories` est dans le contexte) -->
-  {% if categories %}
-    <div class="mb-4 d-flex flex-wrap gap-2">
-      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-sm {% if not request.resolver_match.kwargs.slug %}btn-dark{% else %}btn-outline-dark{% endif %}">
+  <!-- Filtre par Catalogues actifs -->
+  {% if catalogues %}
+    <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+      <span class="small fw-semibold text-muted me-1">Catalogues :</span>
+      <a href="{% url 'catalogue:liste_produits' %}"
+         class="btn btn-sm {% if not catalogue_selectionne %}btn-dark{% else %}btn-outline-dark{% endif %}">
         Tout le catalogue
       </a>
-      {% for cat in categories %}
-        <a href="{% url 'catalogue:liste_par_categorie' slug=cat.slug %}"
-           class="btn btn-sm {% if request.resolver_match.kwargs.slug == cat.slug %}btn-dark{% else %}btn-outline-secondary{% endif %}">
-          {{ cat.nom }}
+      {% for cat_b in catalogues %}
+        <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=cat_b.slug %}"
+           class="btn btn-sm {% if catalogue_selectionne and catalogue_selectionne.slug == cat_b.slug %}btn-primary{% else %}btn-outline-primary{% endif %}">
+          {{ cat_b.nom }}
+          <span class="badge bg-light text-dark ms-1">{{ cat_b.nb_produits|default:0 }}</span>
         </a>
       {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Filtre par catégories (si `categories` est dans le contexte) -->
+  {% if categories %}
+    <div class="mb-4 d-flex flex-wrap align-items-center gap-2">
+      <span class="small fw-semibold text-muted me-1">Catégories :</span>
+      {% if catalogue_selectionne %}
+        <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=catalogue_selectionne.slug %}"
+           class="btn btn-sm {% if not request.resolver_match.kwargs.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+          Toutes les catégories
+        </a>
+        {% for cat in categories %}
+          <a href="{% url 'catalogue:liste_par_catalogue_et_categorie' catalogue_slug=catalogue_selectionne.slug slug=cat.slug %}"
+             class="btn btn-sm {% if request.resolver_match.kwargs.slug == cat.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+            {{ cat.nom }}
+          </a>
+        {% endfor %}
+      {% else %}
+        <a href="{% url 'catalogue:liste_produits' %}"
+           class="btn btn-sm {% if not request.resolver_match.kwargs.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+          Toutes les catégories
+        </a>
+        {% for cat in categories %}
+          <a href="{% url 'catalogue:liste_par_categorie' slug=cat.slug %}"
+             class="btn btn-sm {% if request.resolver_match.kwargs.slug == cat.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+            {{ cat.nom }}
+          </a>
+        {% endfor %}
+      {% endif %}
     </div>
   {% endif %}
 
@@ -64,13 +111,26 @@
 
             <p class="card-text text-muted small mb-2">Réf : {{ produit.reference }}</p>
 
+            {% if produit.catalogues.all %}
+              <div class="mb-2 d-flex flex-wrap gap-1">
+                {% for c in produit.catalogues.all %}
+                  {% if c.actif %}
+                    <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=c.slug %}"
+                       class="badge bg-info text-dark text-decoration-none">
+                      {{ c.nom }}
+                    </a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+
             {% if produit.prix %}
               <p class="fw-bold text-dark mb-2">{{ produit.prix }} DT</p>
             {% endif %}
 
             <!-- Indicateurs de stock -->
-            <div class="bg-light rounded p-2 mb-3 small">
-              {% if user.is_staff %}
+            {% if user.is_staff %}
+              <div class="bg-light rounded p-2 mb-3 small">
                 <div class="d-flex justify-content-between text-primary">
                   <span>Vendue :</span>
                   <strong>{{ produit.quantite_vendue|default:0 }}</strong>
@@ -95,8 +155,8 @@
                   <span>Annulée :</span>
                   <strong>{{ produit.quantite_statut_annule|default:0 }}</strong>
                 </div>
-              {% endif %}
-            </div>
+              </div>
+            {% endif %}
 
             <!-- Actions en bas de carte -->
             <div class="mt-auto">

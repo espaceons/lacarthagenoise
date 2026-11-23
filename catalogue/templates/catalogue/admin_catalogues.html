@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Gestion des Catalogues - La Carthagenoise
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+      <h1 class="fw-bold mb-0">
+        <i class="fas fa-book-open me-2"></i>Gestion des Catalogues
+      </h1>
+      <p class="text-muted small mb-0">
+        Créez, modifiez ou supprimez les catalogues et choisissez ceux visibles dans la vitrine.
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
+        <i class="fas fa-boxes me-1"></i> Gérer les articles
+      </a>
+      <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-tags me-1"></i> Gérer les catégories
+      </a>
+      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-success btn-sm">
+        <i class="fas fa-store me-1"></i> Voir la vitrine
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Formulaire d'ajout rapide -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0 fs-6 fw-bold">
+            <i class="fas fa-plus-circle me-1"></i> Nouveau catalogue
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger py-2 small">
+                {% for error in form.non_field_errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ form.nom.id_for_label }}" class="form-label fw-semibold small mb-1">
+                {{ form.nom.label }}
+              </label>
+              {{ form.nom }}
+              {% if form.nom.errors %}
+                <div class="text-danger small mt-1">{{ form.nom.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold small mb-1">
+                {{ form.description.label }}
+              </label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="form-check form-switch mb-3">
+              {{ form.actif }}
+              <label class="form-check-label fw-semibold small" for="{{ form.actif.id_for_label }}">
+                {{ form.actif.label }}
+              </label>
+              {% if form.actif.errors %}
+                <div class="text-danger small mt-1">{{ form.actif.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">
+              <i class="fas fa-plus me-1"></i> Créer le catalogue
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau des catalogues -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+          <span class="fw-bold">
+            Liste des catalogues <span class="badge bg-dark ms-1">{{ catalogues|length }}</span>
+          </span>
+          <input
+            type="search"
+            id="filtreCatalogues"
+            class="form-control form-control-sm"
+            style="max-width: 240px;"
+            placeholder="Filtrer par nom ou description..."
+            aria-label="Filtrer les catalogues"
+          />
+        </div>
+
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tableCatalogues">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-3">Catalogue</th>
+                  <th>Vitrine</th>
+                  <th class="text-center">Produits</th>
+                  <th class="text-end pe-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cat_b in catalogues %}
+                  <tr class="catalogue-row">
+                    <td class="ps-3 catalogue-info">
+                      <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=cat_b.slug %}"
+                         class="fw-semibold text-decoration-none text-dark">
+                        {{ cat_b.nom }}
+                      </a>
+                      {% if cat_b.description %}
+                        <div class="text-muted small">{{ cat_b.description|truncatechars:90 }}</div>
+                      {% endif %}
+                      <small class="text-muted">Slug : <code>{{ cat_b.slug }}</code></small>
+                    </td>
+                    <td>
+                      {% if cat_b.actif %}
+                        <span class="badge bg-success">Visible</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Masqué</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-primary rounded-pill">{{ cat_b.nb_produits|default:0 }}</span>
+                    </td>
+                    <td class="text-end pe-3 text-nowrap">
+                      <a href="{% url 'catalogue:modifier_catalogue' cat_b.id %}"
+                         class="btn btn-sm btn-outline-primary"
+                         title="Modifier">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{% url 'catalogue:supprimer_catalogue' cat_b.id %}"
+                         class="btn btn-sm btn-outline-danger"
+                         title="Supprimer">
+                        <i class="fas fa-trash-alt"></i>
+                      </a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr id="emptyInitialCatalogueRow">
+                    <td colspan="4" class="text-center py-4 text-muted">
+                      Aucun catalogue enregistré pour le moment.
+                    </td>
+                  </tr>
+                {% endfor %}
+                <tr id="noCatalogueMatchRow" style="display: none;">
+                  <td colspan="4" class="text-center py-4 text-muted">
+                    Aucun catalogue ne correspond à votre recherche.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const input = document.getElementById('filtreCatalogues');
+      const noMatchRow = document.getElementById('noCatalogueMatchRow');
+      if (!input) return;
+
+      function filtrer() {
+        const terme = input.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('#tableCatalogues tbody tr.catalogue-row');
+        let visibles = 0;
+
+        rows.forEach(function (row) {
+          const info = row.querySelector('.catalogue-info')?.textContent.toLowerCase() || '';
+          const match = info.includes(terme);
+          row.style.display = match ? '' : 'none';
+          if (match) visibles += 1;
+        });
+
+        if (noMatchRow && rows.length > 0) {
+          noMatchRow.style.display = visibles === 0 ? '' : 'none';
+        }
+      }
+
+      input.addEventListener('input', filtrer);
+      input.addEventListener('search', filtrer);
+    })();
+  </script>
+{% endblock %}

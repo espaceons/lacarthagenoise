@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .models import Produit, Categorie
-from .forms import ProduitForm, CategorieForm
+from .models import Catalogue, Produit, Categorie
+from .forms import CatalogueForm, ProduitForm, CategorieForm
 
 
 class ProduitListView(ListView):
@@ -17,20 +17,53 @@ class ProduitListView(ListView):
     context_object_name = 'produits'
 
     def get_queryset(self):
-        # Filtrer par catégorie si un slug est fourni dans l'URL
-        queryset = super().get_queryset().filter(disponible=True)
+        # Filtrer les produits disponibles et précharger catégorie + catalogues
+        queryset = (
+            super()
+            .get_queryset()
+            .filter(disponible=True)
+            .select_related('categorie')
+            .prefetch_related('catalogues')
+        )
+
+        catalogue_slug = self.kwargs.get('catalogue_slug')
         slug = self.kwargs.get('slug')
+
+        if catalogue_slug:
+            # Si le slug ne correspond à aucun catalogue actif, Django renvoie une erreur 404 propre
+            catalogue_actif = get_object_or_404(
+                Catalogue,
+                slug=catalogue_slug,
+                actif=True,
+            )
+            queryset = queryset.filter(catalogues=catalogue_actif)
 
         if slug:
             # Si le slug ne correspond à aucune catégorie, Django renvoie une erreur 404 propre
             categorie = get_object_or_404(Categorie, slug=slug)
             queryset = queryset.filter(categorie=categorie)
 
-        return queryset
+        return queryset.distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        catalogue_slug = self.kwargs.get('catalogue_slug')
+        catalogue_selectionne = (
+            Catalogue.objects.filter(slug=catalogue_slug, actif=True).first()
+            if catalogue_slug
+            else None
+        )
+
+        context['catalogues'] = Catalogue.objects.filter(actif=True).annotate(
+            nb_produits=Count(
+                'produits',
+                filter=Q(produits__disponible=True),
+                distinct=True,
+            )
+        )
         context['categories'] = Categorie.objects.all()
+        context['catalogue_selectionne'] = catalogue_selectionne
         return context
 
 
@@ -39,6 +72,106 @@ class ProduitDetailView(DetailView):
     template_name = 'catalogue/detail_produit.html'
     context_object_name = 'produit'
     pk_url_kwarg = 'pk'  # Utiliser l'ID/clé primaire dans l'URL
+
+
+# ==========================================
+# GESTION DES CATALOGUES PAR LE STAFF / ADMIN
+# ==========================================
+
+
+@staff_member_required(login_url='utilisateur:login')
+def liste_catalogues_admin(request):
+    """Liste les catalogues et permet d'en créer un nouveau depuis admin_catalogues.html."""
+    if request.method == 'POST':
+        form = CatalogueForm(request.POST)
+        if form.is_valid():
+            catalogue = form.save()
+            messages.success(
+                request, f"Le catalogue '{catalogue.nom}' a été créé avec succès."
+            )
+            return redirect('catalogue:liste_catalogues_admin')
+    else:
+        form = CatalogueForm()
+
+    catalogues = Catalogue.objects.annotate(
+        nb_produits=Count('produits', distinct=True)
+    ).order_by('-date_creation')
+
+    return render(
+        request,
+        'catalogue/admin_catalogues.html',
+        {
+            'catalogues': catalogues,
+            'form': form,
+        },
+    )
+
+
+@staff_member_required(login_url='utilisateur:login')
+def ajouter_catalogue(request):
+    """Permet au staff d'ajouter un nouveau catalogue via un formulaire dédié."""
+    if request.method == 'POST':
+        form = CatalogueForm(request.POST)
+        if form.is_valid():
+            catalogue = form.save()
+            messages.success(
+                request, f"Le catalogue '{catalogue.nom}' a été ajouté avec succès."
+            )
+            return redirect('catalogue:liste_catalogues_admin')
+    else:
+        form = CatalogueForm()
+
+    context = {
+        'form': form,
+        'titre': 'Ajouter un catalogue',
+        'bouton_texte': 'Enregistrer le catalogue',
+    }
+    return render(request, 'catalogue/form_catalogue.html', context)
+
+
+@staff_member_required(login_url='utilisateur:login')
+def modifier_catalogue(request, catalogue_id):
+    """Permet au staff de modifier un catalogue existant."""
+    catalogue = get_object_or_404(Catalogue, id=catalogue_id)
+    if request.method == 'POST':
+        form = CatalogueForm(request.POST, instance=catalogue)
+        if form.is_valid():
+            catalogue = form.save()
+            messages.success(
+                request, f"Le catalogue '{catalogue.nom}' a été mis à jour."
+            )
+            return redirect('catalogue:liste_catalogues_admin')
+    else:
+        form = CatalogueForm(instance=catalogue)
+
+    context = {
+        'form': form,
+        'catalogue': catalogue,
+        'titre': f'Modifier le catalogue : {catalogue.nom}',
+        'bouton_texte': 'Mettre à jour',
+    }
+    return render(request, 'catalogue/form_catalogue.html', context)
+
+
+@staff_member_required(login_url='utilisateur:login')
+def supprimer_catalogue(request, catalogue_id):
+    """Permet au staff de supprimer un catalogue."""
+    catalogue = get_object_or_404(Catalogue, id=catalogue_id)
+    if request.method == 'POST':
+        nom = catalogue.nom
+        catalogue.delete()
+        messages.success(
+            request, f"Le catalogue '{nom}' a été supprimé."
+        )
+        return redirect('catalogue:liste_catalogues_admin')
+
+    context = {
+        'catalogue': catalogue,
+        'objet': catalogue,
+        'titre_objet': f'le catalogue "{catalogue.nom}"',
+        'url_annulation': 'catalogue:liste_catalogues_admin',
+    }
+    return render(request, 'catalogue/confirmer_suppression.html', context)
 
 
 # ==========================================
@@ -61,6 +194,7 @@ def liste_produits_admin(request):
 
     produits = (
         Produit.objects.select_related('categorie')
+        .prefetch_related('catalogues')
         .annotate(
             qte_attente=Sum(
                 'lignedevis__quantite',
