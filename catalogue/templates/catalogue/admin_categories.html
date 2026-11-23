@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Gestion des Catégories - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+      <h1 class="fw-bold mb-0">
+        <i class="fas fa-tags me-2"></i>Gestion des Catégories
+      </h1>
+      <p class="text-muted small mb-0">Ajoutez, modifiez ou supprimez les catégories du catalogue.</p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'catalogue:ajouter_produit' %}" class="btn btn-success btn-sm">
+        <i class="fas fa-plus me-1"></i> Ajouter un produit
+      </a>
+      <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
+        <i class="fas fa-boxes me-1"></i> Gérer les articles
+      </a>
+      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-store me-1"></i> Voir le catalogue
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Formulaire d'ajout rapide -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0 fs-6 fw-bold">
+            <i class="fas fa-plus-circle me-1"></i> Nouvelle catégorie
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger py-2 small">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ form.nom.id_for_label }}" class="form-label fw-semibold">
+                {{ form.nom.label }}
+              </label>
+              {{ form.nom }}
+              {% if form.nom.errors %}
+                <div class="text-danger small mt-1">
+                  {{ form.nom.errors|striptags }}
+                </div>
+              {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">
+              <i class="fas fa-plus me-1"></i> Ajouter la catégorie
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau des catégories -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+          <span class="fw-bold">
+            Liste des catégories <span class="badge bg-dark ms-1">{{ categories|length }}</span>
+          </span>
+          <input
+            type="search"
+            id="filtreCategories"
+            class="form-control form-control-sm"
+            style="max-width: 220px;"
+            placeholder="Filtrer par nom..."
+            aria-label="Filtrer les catégories"
+          />
+        </div>
+
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tableCategories">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-3">Nom</th>
+                  <th>Slug</th>
+                  <th class="text-center">Produits</th>
+                  <th class="text-end pe-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cat in categories %}
+                  <tr class="categorie-row">
+                    <td class="ps-3 fw-semibold categorie-nom">
+                      <a href="{% url 'catalogue:liste_par_categorie' slug=cat.slug %}" class="text-decoration-none text-dark">
+                        {{ cat.nom }}
+                      </a>
+                    </td>
+                    <td>
+                      <code class="text-muted">{{ cat.slug }}</code>
+                    </td>
+                    <td class="text-center">
+                      {% if cat.nb_produits %}
+                        <span class="badge bg-primary rounded-pill">{{ cat.nb_produits }}</span>
+                      {% else %}
+                        <span class="badge bg-secondary rounded-pill">0</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end pe-3 text-nowrap">
+                      <a href="{% url 'catalogue:modifier_categorie' cat.id %}"
+                         class="btn btn-sm btn-outline-primary"
+                         title="Modifier">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{% url 'catalogue:supprimer_categorie' cat.id %}"
+                         class="btn btn-sm btn-outline-danger"
+                         title="{% if cat.nb_produits %}Supprimer (supprimera aussi {{ cat.nb_produits }} produit(s)){% else %}Supprimer{% endif %}">
+                        <i class="fas fa-trash-alt"></i>
+                      </a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr id="emptyInitialRow">
+                    <td colspan="4" class="text-center py-4 text-muted">
+                      Aucune catégorie enregistrée pour le moment.
+                    </td>
+                  </tr>
+                {% endfor %}
+                <tr id="noFilterMatchRow" style="display: none;">
+                  <td colspan="4" class="text-center py-4 text-muted">
+                    Aucune catégorie ne correspond à votre recherche.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const input = document.getElementById('filtreCategories');
+      const noMatchRow = document.getElementById('noFilterMatchRow');
+      if (!input) return;
+
+      function filtrer() {
+        const terme = input.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('#tableCategories tbody tr.categorie-row');
+        let visibles = 0;
+
+        rows.forEach(function (row) {
+          const nom = row.querySelector('.categorie-nom')?.textContent.toLowerCase() || '';
+          const match = nom.includes(terme);
+          row.style.display = match ? '' : 'none';
+          if (match) visibles += 1;
+        });
+
+        if (noMatchRow && rows.length > 0) {
+          noMatchRow.style.display = visibles === 0 ? '' : 'none';
+        }
+      }
+
+      input.addEventListener('input', filtrer);
+      input.addEventListener('search', filtrer);
+    })();
+  </script>
+{% endblock %}

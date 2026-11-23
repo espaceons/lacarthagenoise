@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ titre }} - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+  <div class="my-4" style="max-width: 560px; margin: auto;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="fw-bold fs-4 mb-0">{{ titre }}</h2>
+      <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Retour
+      </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="{{ form.nom.id_for_label }}" class="form-label fw-semibold">
+              {{ form.nom.label }}
+            </label>
+            {{ form.nom }}
+            {% if form.nom.errors %}
+              <div class="text-danger small mt-1">
+                {{ form.nom.errors|striptags }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save me-1"></i> Enregistrer
+            </button>
+            <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-light border">
+              Annuler
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

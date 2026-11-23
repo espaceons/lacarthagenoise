@@ -1,5 +1,6 @@
 # catalogue/models.py
 from django.db import models
+from django.db.models.aggregates import Sum
 from django.utils.text import slugify
 
 
@@ -17,17 +18,39 @@ class Categorie(models.Model):
 
 
 class Produit(models.Model):
-    categorie = models.ForeignKey( Categorie, on_delete=models.CASCADE, related_name='produits', verbose_name="Catégorie", )
+    categorie = models.ForeignKey(
+        Categorie,
+        on_delete=models.CASCADE,
+        related_name='produits',
+        verbose_name="Catégorie",
+    )
     reference = models.CharField(max_length=50, unique=True, verbose_name="Référence")
     nom = models.CharField(max_length=200, verbose_name="Nom du produit")
     description = models.TextField(verbose_name="Description")
-    prix = models.DecimalField( max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Prix unitaire", )
-    image = models.ImageField( upload_to='produits/', null=True, blank=True, verbose_name="Image", )
+    prix = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Prix unitaire",
+    )
+    image = models.ImageField(
+        upload_to='produits/',
+        null=True,
+        blank=True,
+        verbose_name="Image",
+    )
 
     # --- Gestion des quantités / stock ---
-    quantite_totale = models.PositiveIntegerField( default=0, verbose_name="Quantité totale"    )
-    quantite_vendue = models.PositiveIntegerField( default=0, verbose_name="Quantité vendue"    )
-    quantite_annulee = models.PositiveIntegerField(default=0, verbose_name="Quantité annulée"    )
+    quantite_totale = models.PositiveIntegerField(
+        default=0, verbose_name="Quantité totale"
+    )
+    quantite_vendue = models.PositiveIntegerField(
+        default=0, verbose_name="Quantité vendue"
+    )
+    quantite_annulee = models.PositiveIntegerField(
+        default=0, verbose_name="Quantité annulée"
+    )
 
     disponible = models.BooleanField(default=True, verbose_name="Disponible")
     date_creation = models.DateTimeField(auto_now_add=True)
@@ -39,7 +62,6 @@ class Produit(models.Model):
 
     def _quantite_par_statut(self, statut):
         """Somme des quantités demandées pour ce produit selon le statut du devis."""
-        # Si la vue a déjà annoté l'objet, on évite une requête SQL supplémentaire
         annotation_map = {
             'attente': 'qte_attente',
             'valide': 'qte_valide',
@@ -97,7 +119,9 @@ class Produit(models.Model):
         vendue = self.quantite_vendue or 0
         restante = max(totale - vendue, 0)
 
-        self.disponible = restante > 0
+        if totale > 0 and restante == 0:
+            self.disponible = False
+
         super().save(*args, **kwargs)
 
     def __str__(self):

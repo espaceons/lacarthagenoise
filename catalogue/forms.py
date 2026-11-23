@@ -1,13 +1,35 @@
 # catalogue/forms.py
 from django import forms
-from .models import Produit
+from .models import Produit, Categorie
+
+
+class CategorieForm(forms.ModelForm):
+    class Meta:
+        model = Categorie
+        fields = ['nom']
+        widgets = {
+            'nom': forms.TextInput(attrs={
+                'placeholder': 'Ex. : Poterie, Céramique, Cuivre...',
+            }),
+        }
+        labels = {
+            'nom': 'Nom de la catégorie',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            existing = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f"{existing} form-control".strip()
 
 
 class ProduitForm(forms.ModelForm):
     class Meta:
         model = Produit
-        # On liste les champs du modèle (sans date_creation qui est automatique ;
-        # quantite_restante est une @property calculée dynamiquement)
+        # quantite_restante est une @property calculée dynamiquement ;
+        # date_creation est automatique.
+        # quantite_vendue et quantite_annulee sont gérées par les statuts des devis,
+        # mais restent modifiables en cas de correction manuelle par le staff.
         fields = [
             'reference',
             'nom',
@@ -22,6 +44,7 @@ class ProduitForm(forms.ModelForm):
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
+            'prix': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
             'quantite_totale': forms.NumberInput(attrs={'min': 0}),
             'quantite_vendue': forms.NumberInput(attrs={'min': 0}),
             'quantite_annulee': forms.NumberInput(attrs={'min': 0}),
@@ -29,9 +52,35 @@ class ProduitForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Ajout dynamique des classes Bootstrap à tous les champs du formulaire
         for field_name, field in self.fields.items():
+            existing_class = field.widget.attrs.get('class', '')
             if field_name == 'disponible':
-                field.widget.attrs['class'] = 'form-check-input'
+                bootstrap_class = 'form-check-input'
+            elif field_name == 'categorie':
+                bootstrap_class = 'form-select'
             else:
-                field.widget.attrs['class'] = 'form-control'
+                bootstrap_class = 'form-control'
+            field.widget.attrs['class'] = f"{existing_class} {bootstrap_class}".strip(
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        totale = cleaned_data.get('quantite_totale')
+        vendue = cleaned_data.get('quantite_vendue')
+
+        if totale is None:
+            totale = 0
+        if vendue is None:
+            vendue = 0
+
+        if totale > 0 and vendue > totale:
+            self.add_error(
+                'quantite_vendue',
+                "La quantité vendue ne peut pas dépasser la quantité totale."
+            )
+
+        restante = max(totale - vendue, 0)
+        if totale > 0 and restante == 0:
+            cleaned_data['disponible'] = False
+
+        return cleaned_data

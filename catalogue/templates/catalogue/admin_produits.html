@@ -1,107 +1,334 @@
 {% extends 'base.html' %}
 
-{% block title %}Gestion du Catalogue - La Carthagenoise{% endblock %}
+{% block title %}
+  Gestion des Articles - {{ block.super }}
+{% endblock %}
 
 {% block content %}
-<div class="my-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold"><i class="fas fa-boxes"></i> Gestion des Articles du Catalogue</h2>
-        <a href="{% url 'catalogue:ajouter_produit' %}" class="btn btn-success">
-            <i class="fas fa-plus-circle"></i> Ajouter un produit
-        </a>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+      <h1 class="fw-bold mb-0">
+        <i class="fas fa-boxes me-2"></i>Gestion des Articles
+      </h1>
+      <p class="text-muted small mb-0">Ajoutez, modifiez, suivez les stocks ou gérez la disponibilité des produits.</p>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width: 80px;">Image</th>
-                        <th>Nom du produit</th>
-                        <th>Catégorie</th>
-                        <th>Prix</th>
-                        <th>Stock (Total / Vendu / Restant)</th>
-                        <th>Détail par statut</th>
-                        <th>Statut</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for produit in produits %}
-                        <tr>
-                            <td>
-                                {% if produit.image %}
-                                    <img src="{{ produit.image.url }}" alt="{{ produit.nom }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
-                                {% else %}
-                                    <span class="badge bg-secondary">Aucune</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="fw-bold">{{ produit.nom }}</div>
-                                {% if produit.reference %}
-                                    <small class="text-muted">Réf : {{ produit.reference }}</small>
-                                {% endif %}
-                            </td>
-                            <td>{{ produit.categorie.nom|default:"Sans catégorie" }}</td>
-                            <td>
-                                {% if produit.prix %}
-                                    {{ produit.prix }} DT
-                                {% else %}
-                                    Sur devis
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="small">
-                                    <div>Total : <strong>{{ produit.quantite_totale|default:0 }}</strong></div>
-                                    <div class="text-primary">Vendu : <strong>{{ produit.quantite_vendue|default:0 }}</strong></div>
-                                    <div class="text-success">Restant : <strong>{{ produit.quantite_restante|default:0 }}</strong></div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex flex-column gap-1 small">
-                                    <span class="badge bg-warning text-dark text-start">
-                                        En attente : {{ produit.qte_attente|default:0 }}
-                                    </span>
-                                    <span class="badge bg-info text-dark text-start">
-                                        Validé : {{ produit.qte_valide|default:0 }}
-                                    </span>
-                                    <span class="badge bg-secondary text-start">
-                                        En livraison : {{ produit.qte_livraison|default:0 }}
-                                    </span>
-                                    <span class="badge bg-success text-start">
-                                        Prêt / Livré : {{ produit.qte_termine|default:0 }}
-                                    </span>
-                                    <span class="badge bg-danger text-start">
-                                        Annulé : {{ produit.qte_annule|default:0 }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td>
-                                {% if produit.disponible %}
-                                    <span class="badge bg-success">Disponible</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Indisponible</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end">
-                                <a href="{% url 'catalogue:modifier_produit' produit.id %}" class="btn btn-sm btn-outline-primary" title="Modifier">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{% url 'catalogue:supprimer_produit' produit.id %}" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
-                                Aucun produit enregistré dans le catalogue.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-dark btn-sm">
+        <i class="fas fa-tags me-1"></i> Gérer les catégories
+      </a>
+      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-store me-1"></i> Voir le catalogue
+      </a>
     </div>
-</div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Formulaire d'ajout rapide -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0 fs-6 fw-bold">
+            <i class="fas fa-plus-circle me-1"></i> Nouveau produit
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger py-2 small">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <div class="mb-2">
+              <label for="{{ form.reference.id_for_label }}" class="form-label fw-semibold small mb-1">
+                {{ form.reference.label }}
+              </label>
+              {{ form.reference }}
+              {% if form.reference.errors %}
+                <div class="text-danger small mt-1">{{ form.reference.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-2">
+              <label for="{{ form.nom.id_for_label }}" class="form-label fw-semibold small mb-1">
+                {{ form.nom.label }}
+              </label>
+              {{ form.nom }}
+              {% if form.nom.errors %}
+                <div class="text-danger small mt-1">{{ form.nom.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-2">
+              <label for="{{ form.categorie.id_for_label }}" class="form-label fw-semibold small mb-1">
+                {{ form.categorie.label }}
+              </label>
+              {{ form.categorie }}
+              {% if form.categorie.errors %}
+                <div class="text-danger small mt-1">{{ form.categorie.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label for="{{ form.prix.id_for_label }}" class="form-label fw-semibold small mb-1">
+                  {{ form.prix.label }} (DT)
+                </label>
+                {{ form.prix }}
+                {% if form.prix.errors %}
+                  <div class="text-danger small mt-1">{{ form.prix.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-6">
+                <label for="{{ form.quantite_totale.id_for_label }}" class="form-label fw-semibold small mb-1">
+                  {{ form.quantite_totale.label }}
+                </label>
+                {{ form.quantite_totale }}
+                {% if form.quantite_totale.errors %}
+                  <div class="text-danger small mt-1">{{ form.quantite_totale.errors|striptags }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            {% if form.quantite_vendue %}
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label for="{{ form.quantite_vendue.id_for_label }}" class="form-label fw-semibold small mb-1">
+                    {{ form.quantite_vendue.label }}
+                  </label>
+                  {{ form.quantite_vendue }}
+                  {% if form.quantite_vendue.errors %}
+                    <div class="text-danger small mt-1">{{ form.quantite_vendue.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+                <div class="col-6">
+                  <label for="{{ form.quantite_annulee.id_for_label }}" class="form-label fw-semibold small mb-1">
+                    {{ form.quantite_annulee.label }}
+                  </label>
+                  {{ form.quantite_annulee }}
+                  {% if form.quantite_annulee.errors %}
+                    <div class="text-danger small mt-1">{{ form.quantite_annulee.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="mb-2">
+              <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold small mb-1">
+                {{ form.image.label }}
+              </label>
+              {{ form.image }}
+              {% if form.image.errors %}
+                <div class="text-danger small mt-1">{{ form.image.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-2">
+              <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold small mb-1">
+                {{ form.description.label }}
+              </label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="form-check form-switch mb-3">
+              {{ form.disponible }}
+              <label class="form-check-label fw-semibold small" for="{{ form.disponible.id_for_label }}">
+                {{ form.disponible.label }}
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">
+              <i class="fas fa-plus me-1"></i> Ajouter le produit
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau des produits -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+          <span class="fw-bold">
+            Liste des articles <span class="badge bg-dark ms-1">{{ produits|length }}</span>
+          </span>
+          <input
+            type="search"
+            id="filtreProduits"
+            class="form-control form-control-sm"
+            style="max-width: 240px;"
+            placeholder="Filtrer par nom, réf. ou catégorie..."
+            aria-label="Filtrer les articles"
+          />
+        </div>
+
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tableProduits">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-3" style="width: 65px;">Image</th>
+                  <th>Produit</th>
+                  <th>Catégorie</th>
+                  <th>Prix</th>
+                  <th>Stock</th>
+                  <th>Détail par statut</th>
+                  <th>Statut</th>
+                  <th class="text-end pe-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for produit in produits %}
+                  <tr class="produit-row">
+                    <td class="ps-3">
+                      {% if produit.image %}
+                        <img src="{{ produit.image.url }}" alt="{{ produit.nom }}" class="rounded border" style="width: 45px; height: 45px; object-fit: cover;">
+                      {% else %}
+                        <div class="rounded bg-light border d-flex align-items-center justify-content-center text-muted" style="width: 45px; height: 45px;">
+                          <i class="fas fa-image"></i>
+                        </div>
+                      {% endif %}
+                    </td>
+                    <td class="produit-info">
+                      <div class="fw-semibold">
+                        <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="text-decoration-none text-dark">
+                          {{ produit.nom }}
+                        </a>
+                      </div>
+                      {% if produit.reference %}
+                        <small class="text-muted">Réf : <code>{{ produit.reference }}</code></small>
+                      {% endif %}
+                    </td>
+                    <td class="produit-categorie">
+                      {% if produit.categorie %}
+                        <span class="badge bg-light text-dark border">{{ produit.categorie.nom }}</span>
+                      {% else %}
+                        <span class="text-muted small">Sans catégorie</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-nowrap fw-semibold">
+                      {% if produit.prix %}
+                        {{ produit.prix }} DT
+                      {% else %}
+                        <span class="text-muted fw-normal">Sur devis</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <div class="small text-nowrap">
+                        <div>Total : <strong>{{ produit.quantite_totale|default:0 }}</strong></div>
+                        <div class="text-primary">Vendu : <strong>{{ produit.quantite_vendue|default:0 }}</strong></div>
+                        <div class="text-success">Restant : <strong>{{ produit.quantite_restante|default:0 }}</strong></div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="d-flex flex-column gap-1 small">
+                        <span class="badge bg-warning text-dark text-start">
+                          En attente : {{ produit.qte_attente|default:0 }}
+                        </span>
+                        <span class="badge bg-info text-dark text-start">
+                          Validé : {{ produit.qte_valide|default:0 }}
+                        </span>
+                        <span class="badge bg-secondary text-start">
+                          En livraison : {{ produit.qte_livraison|default:0 }}
+                        </span>
+                        <span class="badge bg-success text-start">
+                          Prêt / Livré : {{ produit.qte_termine|default:0 }}
+                        </span>
+                        <span class="badge bg-danger text-start">
+                          Annulé : {{ produit.qte_annule|default:0 }}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <form method="post" action="{% url 'catalogue:toggle_disponibilite_produit' produit.id %}" class="d-inline-flex align-items-center m-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <div class="form-check form-switch m-0">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            role="switch"
+                            id="dispo-{{ produit.id }}"
+                            name="disponible"
+                            value="1"
+                            {% if produit.disponible %}checked{% endif %}
+                            {% if produit.quantite_totale > 0 and produit.quantite_restante == 0 %}disabled{% endif %}
+                            onchange="this.form.submit()"
+                          >
+                          <label
+                            class="form-check-label small fw-semibold {% if produit.disponible %}text-success{% else %}text-danger{% endif %}"
+                            for="dispo-{{ produit.id }}"
+                          >
+                            {% if produit.disponible %}Disponible{% else %}Indisponible{% endif %}
+                          </label>
+                        </div>
+                      </form>
+                    </td>
+                    <td class="text-end pe-3 text-nowrap">
+                      <a href="{% url 'catalogue:modifier_produit' produit.id %}"
+                         class="btn btn-sm btn-outline-primary"
+                         title="Modifier">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <a href="{% url 'catalogue:supprimer_produit' produit.id %}"
+                         class="btn btn-sm btn-outline-danger"
+                         title="Supprimer">
+                        <i class="fas fa-trash-alt"></i>
+                      </a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr id="emptyInitialRow">
+                    <td colspan="8" class="text-center py-4 text-muted">
+                      Aucun produit enregistré dans le catalogue.
+                    </td>
+                  </tr>
+                {% endfor %}
+                <tr id="noFilterMatchRow" style="display: none;">
+                  <td colspan="8" class="text-center py-4 text-muted">
+                    Aucun produit ne correspond à votre recherche.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const input = document.getElementById('filtreProduits');
+      const noMatchRow = document.getElementById('noFilterMatchRow');
+      if (!input) return;
+
+      function filtrer() {
+        const terme = input.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('#tableProduits tbody tr.produit-row');
+        let visibles = 0;
+
+        rows.forEach(function (row) {
+          const info = row.querySelector('.produit-info')?.textContent.toLowerCase() || '';
+          const cat = row.querySelector('.produit-categorie')?.textContent.toLowerCase() || '';
+          const match = info.includes(terme) || cat.includes(terme);
+          row.style.display = match ? '' : 'none';
+          if (match) visibles += 1;
+        });
+
+        if (noMatchRow && rows.length > 0) {
+          noMatchRow.style.display = visibles === 0 ? '' : 'none';
+        }
+      }
+
+      input.addEventListener('input', filtrer);
+      input.addEventListener('search', filtrer);
+    })();
+  </script>
 {% endblock %}
