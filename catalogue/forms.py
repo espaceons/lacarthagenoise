@@ -3,10 +3,29 @@ from django import forms
 from .models import Produit, Categorie, Catalogue
 
 
+class ProduitChoiceField(forms.ModelMultipleChoiceField):
+    """Affiche la référence, le nom et la catégorie de chaque produit."""
+
+    def label_from_instance(self, obj):
+        cat = f" [{obj.categorie.nom}]" if obj.categorie else ""
+        return f"{obj.reference} — {obj.nom}{cat}"
+
+
 class CatalogueForm(forms.ModelForm):
+    produits = ProduitChoiceField(
+        queryset=Produit.objects.select_related('categorie').order_by(
+            'categorie__nom', 'nom'
+        ),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={'class': 'form-check-input'}),
+        label="Articles associés à ce catalogue",
+        help_text="Cochez les produits que vous souhaitez rassembler dans ce catalogue.",
+    )
+
     class Meta:
         model = Catalogue
-        fields = ['nom', 'description', 'actif']
+        fields = ['nom', 'description', 'actif', 'produits']
         widgets = {
             'nom': forms.TextInput(attrs={
                 'placeholder': 'Ex. : Catalogue Général, Collection Été...',
@@ -25,10 +44,30 @@ class CatalogueForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Pré-cocher les produits déjà liés en mode modification
+        if self.instance and self.instance.pk:
+            self.fields['produits'].initial = self.instance.produits.all()
+
         for field_name, field in self.fields.items():
+            if field_name == 'produits':
+                continue
             existing = field.widget.attrs.get('class', '')
             css = 'form-check-input' if field_name == 'actif' else 'form-control'
             field.widget.attrs['class'] = f"{existing} {css}".strip()
+
+    def save(self, commit=True):
+        catalogue = super().save(commit=commit)
+        if commit:
+            catalogue.produits.set(self.cleaned_data['produits'])
+        else:
+            old_save_m2m = self.save_m2m
+
+            def save_m2m():
+                old_save_m2m()
+                catalogue.produits.set(self.cleaned_data['produits'])
+
+            self.save_m2m = save_m2m
+        return catalogue
 
 
 class CategorieForm(forms.ModelForm):

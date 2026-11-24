@@ -1,207 +1,407 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  {% if catalogue_selectionne %}{{ catalogue_selectionne.nom }} - {% endif %}Catalogue - {{ block.super }}
+  {% if catalogue_selectionne %}
+    {{ catalogue_selectionne.nom }} - La Carthagenoise
+  {% else %}
+    Nos Catalogues &amp; Produits - La Carthagenoise
+  {% endif %}
 {% endblock %}
 
 {% block content %}
+<div class="my-4">
+  <!-- En-tête de la vitrine et boutons d'administration -->
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
-      <h1 class="fw-bold mb-0">
+      <h1 class="h3 fw-bold mb-1">
         {% if catalogue_selectionne %}
           {{ catalogue_selectionne.nom }}
         {% else %}
-          Notre Catalogue
+          Nos Catalogues
         {% endif %}
       </h1>
-      {% if catalogue_selectionne and catalogue_selectionne.description %}
-        <p class="text-muted small mb-0 mt-1">{{ catalogue_selectionne.description }}</p>
-      {% endif %}
+      <p class="text-muted small mb-0">
+        {% if catalogue_selectionne and catalogue_selectionne.description %}
+          {{ catalogue_selectionne.description }}
+        {% else %}
+          Découvrez nos sélections, choisissez la quantité souhaitée et ajoutez vos articles au devis.
+        {% endif %}
+      </p>
     </div>
 
     {% if user.is_staff %}
       <div class="d-flex flex-wrap gap-2">
-        {% comment %} <a href="{% url 'catalogue:ajouter_produit' %}" class="btn btn-success btn-sm">
-          <i class="fas fa-plus me-1"></i> Ajouter un produit
-        </a> {% endcomment %}
         <a href="{% url 'catalogue:liste_catalogues_admin' %}" class="btn btn-outline-success btn-sm">
           <i class="fas fa-book-open me-1"></i> Gérer les catalogues
         </a>
-        <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
-          <i class="fas fa-boxes me-1"></i> Gérer les articles
-        </a>
         <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-primary btn-sm">
           <i class="fas fa-tags me-1"></i> Gérer les catégories
+        </a>
+        <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
+          <i class="fas fa-boxes me-1"></i> Gérer les produits
         </a>
       </div>
     {% endif %}
   </div>
 
-  <!-- Filtre par Catalogues actifs -->
-  {% if catalogues %}
-    <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
-      <span class="small fw-semibold text-muted me-1">Catalogues :</span>
-      <a href="{% url 'catalogue:liste_produits' %}"
-         class="btn btn-sm {% if not catalogue_selectionne %}btn-dark{% else %}btn-outline-dark{% endif %}">
-        Tout le catalogue
-      </a>
-      {% for cat_b in catalogues %}
-        <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=cat_b.slug %}"
-           class="btn btn-sm {% if catalogue_selectionne and catalogue_selectionne.slug == cat_b.slug %}btn-primary{% else %}btn-outline-primary{% endif %}">
-          {{ cat_b.nom }}
-          <span class="badge bg-light text-dark ms-1">{{ cat_b.nb_produits|default:0 }}</span>
-        </a>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <!-- Filtre par catégories (si `categories` est dans le contexte) -->
-  {% if categories %}
-    <div class="mb-4 d-flex flex-wrap align-items-center gap-2">
-      <span class="small fw-semibold text-muted me-1">Catégories :</span>
-      {% if catalogue_selectionne %}
-        <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=catalogue_selectionne.slug %}"
-           class="btn btn-sm {% if not request.resolver_match.kwargs.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-          Toutes les catégories
-        </a>
-        {% for cat in categories %}
-          <a href="{% url 'catalogue:liste_par_catalogue_et_categorie' catalogue_slug=catalogue_selectionne.slug slug=cat.slug %}"
-             class="btn btn-sm {% if request.resolver_match.kwargs.slug == cat.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-            {{ cat.nom }}
-          </a>
-        {% endfor %}
-      {% else %}
-        <a href="{% url 'catalogue:liste_produits' %}"
-           class="btn btn-sm {% if not request.resolver_match.kwargs.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-          Toutes les catégories
-        </a>
-        {% for cat in categories %}
-          <a href="{% url 'catalogue:liste_par_categorie' slug=cat.slug %}"
-             class="btn btn-sm {% if request.resolver_match.kwargs.slug == cat.slug %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-            {{ cat.nom }}
-          </a>
-        {% endfor %}
-      {% endif %}
-    </div>
-  {% endif %}
-
-  <div class="row">
-    {% for produit in produits %}
-      <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm border-0">
-          <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}">
-            {% if produit.image %}
-              <img src="{{ produit.image.url }}" class="card-img-top" alt="{{ produit.nom }}" style="height: 220px; object-fit: cover;" />
-            {% else %}
-              <div class="bg-light d-flex align-items-center justify-content-center text-muted" style="height: 220px;">
-                <i class="fas fa-image fa-2x"></i>
-              </div>
-            {% endif %}
-          </a>
-
-          <div class="card-body d-flex flex-column">
-            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-              <h5 class="card-title mb-0">{{ produit.nom }}</h5>
-              {% if produit.disponible and produit.quantite_restante > 0 %}
-                <span class="badge bg-success text-nowrap">En stock ({{ produit.quantite_restante }})</span>
-              {% else %}
-                <span class="badge bg-danger text-nowrap">Épuisé</span>
-              {% endif %}
-            </div>
-
-            <p class="card-text text-muted small mb-2">Réf : {{ produit.reference }}</p>
-
-            {% if produit.catalogues.all %}
-              <div class="mb-2 d-flex flex-wrap gap-1">
-                {% for c in produit.catalogues.all %}
-                  {% if c.actif %}
-                    <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=c.slug %}"
-                       class="badge bg-info text-dark text-decoration-none">
-                      {{ c.nom }}
-                    </a>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            {% if produit.prix %}
-              <p class="fw-bold text-dark mb-2">{{ produit.prix }} DT</p>
-            {% endif %}
-
-            <!-- Indicateurs de stock -->
-            {% if user.is_staff %}
-              <div class="bg-light rounded p-2 mb-3 small">
-                <div class="d-flex justify-content-between text-primary">
-                  <span>Vendue :</span>
-                  <strong>{{ produit.quantite_vendue|default:0 }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-warning">
-                  <span>En Attente de Validation :</span>
-                  <strong>{{ produit.quantite_en_attente|default:0 }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-secondary">
-                  <span>Validé :</span>
-                  <strong>{{ produit.quantite_validee|default:0 }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-info">
-                  <span>En Cour de Livraison :</span>
-                  <strong>{{ produit.quantite_en_livraison|default:0 }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-success">
-                  <span>Livré :</span>
-                  <strong>{{ produit.quantite_livree|default:0 }}</strong>
-                </div>
-                <div class="d-flex justify-content-between text-danger">
-                  <span>Annulée :</span>
-                  <strong>{{ produit.quantite_statut_annule|default:0 }}</strong>
-                </div>
-              </div>
-            {% endif %}
-
-            <!-- Actions en bas de carte -->
-            <div class="mt-auto">
-              <div class="d-flex gap-2 mb-2">
-                <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
-                  <i class="fas fa-eye me-1"></i> Détails
-                </a>
-                {% if user.is_staff %}
-                  <a href="{% url 'catalogue:modifier_produit' produit.pk %}" class="btn btn-sm btn-outline-secondary" title="Modifier">
-                    <i class="fas fa-edit"></i>
-                  </a>
+  <!-- Grille principale : contenu à gauche (col-lg-9) + filtres à droite (col-lg-3) -->
+  <div class="row g-4">
+    <!-- COLONNE PRINCIPALE : Catalogues & Produits -->
+    <div class="col-lg-9">
+      {% if not catalogue_selectionne and not request.resolver_match.kwargs.slug and catalogues %}
+        <!-- Vue par défaut : chaque catalogue actif avec ses produits -->
+        {% for cat_b in catalogues %}
+          <section class="mb-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-2 mb-3">
+              <div>
+                <h2 class="h4 fw-bold mb-0">{{ cat_b.nom }}</h2>
+                {% if cat_b.description %}
+                  <p class="text-muted small mb-0">{{ cat_b.description }}</p>
                 {% endif %}
               </div>
+              <a
+                href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=cat_b.slug %}"
+                class="btn btn-outline-dark btn-sm"
+              >
+                Voir le catalogue ({{ cat_b.produits_actifs|length }})
+              </a>
+            </div>
 
-              {% if produit.disponible and produit.quantite_restante > 0 %}
-                <form method="post" action="{% url 'devis:add_to_devis' produit.pk %}" class="d-flex gap-2">
-                  {% csrf_token %}
-                  <input
-                    type="number"
-                    name="quantite_demander"
-                    value="1"
-                    min="1"
-                    max="{{ produit.quantite_restante }}"
-                    class="form-control form-control-sm text-center"
-                    style="max-width: 85px;"
-                    aria-label="Quantité demandée"
-                    required
-                  />
-                  <button type="submit" class="btn btn-sm btn-dark flex-grow-1">
-                    <i class="fas fa-plus me-1"></i> Ajouter au devis
-                  </button>
-                </form>
-              {% else %}
-                <button type="button" class="btn btn-sm btn-secondary w-100" disabled>
-                  Indisponible
-                </button>
+            <div class="row g-4">
+              {% for produit in cat_b.produits_actifs %}
+                <div class="col-md-6 col-xl-4">
+                  <div class="card h-100 shadow-sm border-0">
+                    {% if produit.image %}
+                      <img
+                        src="{{ produit.image.url }}"
+                        class="card-img-top"
+                        alt="{{ produit.nom }}"
+                        style="height: 200px; object-fit: cover;"
+                      />
+                    {% else %}
+                      <div
+                        class="bg-light d-flex align-items-center justify-content-center text-muted"
+                        style="height: 200px;"
+                      >
+                        <i class="fas fa-image fa-2x"></i>
+                      </div>
+                    {% endif %}
+
+                    <div class="card-body d-flex flex-column">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge bg-light text-dark border">{{ produit.categorie.nom }}</span>
+                        <small class="text-muted">Réf: {{ produit.reference }}</small>
+                      </div>
+
+                      <h3 class="h6 fw-bold card-title mt-1">{{ produit.nom }}</h3>
+                      <p class="card-text text-muted small flex-grow-1">
+                        {{ produit.description|truncatewords:15 }}
+                      </p>
+
+                      <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <span class="fw-bold text-dark">
+                          {% if produit.prix %}
+                            {{ produit.prix }} DT
+                          {% else %}
+                            Sur devis
+                          {% endif %}
+                        </span>
+                        {% if produit.quantite_totale > 0 %}
+                          <small class="text-muted">Stock : {{ produit.quantite_restante }}</small>
+                        {% endif %}
+                      </div>
+
+                      {% if user.is_staff %}
+                        <div class="mt-2 pt-2 border-top small">
+                          <div class="text-muted mb-1">
+                            Total : <strong>{{ produit.quantite_totale }}</strong> |
+                            Vendu : <strong>{{ produit.quantite_vendue }}</strong> |
+                            Annulé (stock) : <strong>{{ produit.quantite_annulee }}</strong>
+                          </div>
+                          <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-warning text-dark">En attente : {{ produit.quantite_en_attente }}</span>
+                            <span class="badge bg-primary">Validé : {{ produit.quantite_validee }}</span>
+                            <span class="badge bg-info text-dark">En livraison : {{ produit.quantite_en_livraison }}</span>
+                            <span class="badge bg-success">Prêt/Livré : {{ produit.quantite_livree }}</span>
+                            <span class="badge bg-danger">Annulé : {{ produit.quantite_statut_annule }}</span>
+                          </div>
+                        </div>
+                      {% endif %}
+
+                      <!-- Formulaire Quantité + Devis -->
+                      <form
+                        method="post"
+                        action="{% url 'devis:add_to_devis' produit.pk %}"
+                        class="d-flex align-items-center gap-2 mt-3"
+                      >
+                        {% csrf_token %}
+                        <input
+                          type="number"
+                          name="quantite_demander"
+                          value="1"
+                          min="1"
+                          {% if produit.quantite_totale > 0 %}
+                            max="{{ produit.quantite_restante }}"
+                          {% endif %}
+                          class="form-control form-control-sm text-center"
+                          style="width: 72px;"
+                          aria-label="Quantité pour {{ produit.nom }}"
+                          {% if produit.quantite_totale > 0 and produit.quantite_restante == 0 %}
+                            disabled
+                          {% endif %}
+                        />
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-dark flex-grow-1"
+                          {% if produit.quantite_totale > 0 and produit.quantite_restante == 0 %}
+                            disabled
+                          {% endif %}
+                        >
+                          <i class="fas fa-file-invoice me-1"></i>
+                          {% if produit.quantite_totale > 0 and produit.quantite_restante == 0 %}
+                            Épuisé
+                          {% else %}
+                            Devis
+                          {% endif %}
+                        </button>
+                        <a
+                          href="{% url 'catalogue:detail_produit' pk=produit.pk %}"
+                          class="btn btn-sm btn-outline-secondary"
+                          title="Détails"
+                        >
+                          <i class="fas fa-eye"></i>
+                        </a>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% empty %}
+                <div class="col-12">
+                  <div class="alert alert-light border text-muted small mb-0">
+                    Aucun produit disponible dans ce catalogue pour le moment.
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+
+      {% else %}
+        <!-- Vue filtrée (par catalogue, par catégorie, ou combinaison des deux) -->
+        {% if catalogue_selectionne or request.resolver_match.kwargs.slug %}
+          <div class="d-flex flex-wrap justify-content-between align-items-center bg-light rounded p-3 mb-4 border">
+            <div class="small">
+              <span class="text-muted">Filtre actif :</span>
+              {% if catalogue_selectionne %}
+                <span class="badge bg-dark ms-1">{{ catalogue_selectionne.nom }}</span>
               {% endif %}
+              {% for categorie in categories %}
+                {% if request.resolver_match.kwargs.slug == categorie.slug %}
+                  <span class="badge bg-secondary ms-1">{{ categorie.nom }}</span>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary btn-sm">
+              <i class="fas fa-times me-1"></i> Réinitialiser les filtres
+            </a>
+          </div>
+        {% endif %}
+
+        <div class="row g-4">
+          {% for produit in produits %}
+            <div class="col-md-6 col-xl-4">
+              <div class="card h-100 shadow-sm border-0">
+                {% if produit.image %}
+                  <img
+                    src="{{ produit.image.url }}"
+                    class="card-img-top"
+                    alt="{{ produit.nom }}"
+                    style="height: 200px; object-fit: cover;"
+                  />
+                {% else %}
+                  <div
+                    class="bg-light d-flex align-items-center justify-content-center text-muted"
+                    style="height: 200px;"
+                  >
+                    <i class="fas fa-image fa-2x"></i>
+                  </div>
+                {% endif %}
+
+                <div class="card-body d-flex flex-column">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="badge bg-light text-dark border">{{ produit.categorie.nom }}</span>
+                    <small class="text-muted">Réf: {{ produit.reference }}</small>
+                  </div>
+
+                  <h3 class="h6 fw-bold card-title mt-1">{{ produit.nom }}</h3>
+                  <p class="card-text text-muted small flex-grow-1">
+                    {{ produit.description|truncatewords:15 }}
+                  </p>
+
+                  <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                    <span class="fw-bold text-dark">
+                      {% if produit.prix %}
+                        {{ produit.prix }} DT
+                      {% else %}
+                        Sur devis
+                      {% endif %}
+                    </span>
+                    {% if produit.quantite_totale > 0 %}
+                      <small class="text-muted">Stock : {{ produit.quantite_restante }}</small>
+                    {% endif %}
+                  </div>
+
+                  {% if user.is_staff %}
+                    <div class="mt-2 pt-2 border-top small">
+                      <div class="text-muted mb-1">
+                        Total : <strong>{{ produit.quantite_totale }}</strong> |
+                        Vendu : <strong>{{ produit.quantite_vendue }}</strong> |
+                        Annulé (stock) : <strong>{{ produit.quantite_annulee }}</strong>
+                      </div>
+                      <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-warning text-dark">En attente : {{ produit.quantite_en_attente }}</span>
+                        <span class="badge bg-primary">Validé : {{ produit.quantite_validee }}</span>
+                        <span class="badge bg-info text-dark">En livraison : {{ produit.quantite_en_livraison }}</span>
+                        <span class="badge bg-success">Prêt/Livré : {{ produit.quantite_livree }}</span>
+                        <span class="badge bg-danger">Annulé : {{ produit.quantite_statut_annule }}</span>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  <!-- Formulaire Quantité + Devis -->
+                  <form
+                    method="post"
+                    action="{% url 'devis:add_to_devis' produit.pk %}"
+                    class="d-flex align-items-center gap-2 mt-3"
+                  >
+                    {% csrf_token %}
+                    <input
+                      type="number"
+                      name="quantite_demander"
+                      value="1"
+                      min="1"
+                      {% if produit.quantite_totale > 0 %}
+                        max="{{ produit.quantite_restante }}"
+                      {% endif %}
+                      class="form-control form-control-sm text-center"
+                      style="width: 72px;"
+                      aria-label="Quantité pour {{ produit.nom }}"
+                      {% if produit.quantite_totale > 0 and produit.quantite_restante == 0 %}
+                        disabled
+                      {% endif %}
+                    />
+                    <button
+                      type="submit"
+                      class="btn btn-sm btn-dark flex-grow-1"
+                      {% if produit.quantite_totale > 0 and produit.quantite_restante == 0 %}
+                        disabled
+                      {% endif %}
+                    >
+                      <i class="fas fa-file-invoice me-1"></i>
+                      {% if produit.quantite_totale > 0 and produit.quantite_restante == 0 %}
+                        Épuisé
+                      {% else %}
+                        Devis
+                      {% endif %}
+                    </button>
+                    <a
+                      href="{% url 'catalogue:detail_produit' pk=produit.pk %}"
+                      class="btn btn-sm btn-outline-secondary"
+                      title="Détails"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="col-12">
+              <div class="alert alert-info mb-0">
+                Aucun produit disponible ne correspond à cette sélection.
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- COLONNE DROITE : Filtres Catalogues & Catégories -->
+    <aside class="col-lg-3">
+      <div class="position-sticky" style="top: 1.5rem;">
+        <!-- Carte Filtre Catalogues -->
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-body">
+            <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+              <i class="fas fa-book-open me-1"></i> Catalogues
+            </h2>
+            <div class="list-group list-group-flush">
+              <a
+                href="{% url 'catalogue:liste_produits' %}"
+                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if not catalogue_selectionne and not request.resolver_match.kwargs.slug %}active{% endif %}"
+              >
+                <span>Tous les catalogues</span>
+              </a>
+              {% for cat_b in catalogues %}
+                <a
+                  href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=cat_b.slug %}"
+                  class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if catalogue_selectionne and catalogue_selectionne.slug == cat_b.slug %}active{% endif %}"
+                >
+                  <span>{{ cat_b.nom }}</span>
+                  <span class="badge {% if catalogue_selectionne and catalogue_selectionne.slug == cat_b.slug %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                    {{ cat_b.produits_actifs|length }}
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte Filtre Catégories -->
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+              <i class="fas fa-tags me-1"></i> Catégories
+            </h2>
+            <div class="list-group list-group-flush">
+              {% if catalogue_selectionne %}
+                <a
+                  href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=catalogue_selectionne.slug %}"
+                  class="list-group-item list-group-item-action px-2 py-2 rounded {% if not request.resolver_match.kwargs.slug %}active{% endif %}"
+                >
+                  Toutes les catégories
+                </a>
+              {% else %}
+                <a
+                  href="{% url 'catalogue:liste_produits' %}"
+                  class="list-group-item list-group-item-action px-2 py-2 rounded {% if not request.resolver_match.kwargs.slug and not catalogue_selectionne %}active{% endif %}"
+                >
+                  Toutes les catégories
+                </a>
+              {% endif %}
+
+              {% for categorie in categories %}
+                {% if catalogue_selectionne %}
+                  <a
+                    href="{% url 'catalogue:liste_par_catalogue_et_categorie' catalogue_slug=catalogue_selectionne.slug slug=categorie.slug %}"
+                    class="list-group-item list-group-item-action px-2 py-2 rounded {% if request.resolver_match.kwargs.slug == categorie.slug %}active{% endif %}"
+                  >
+                    {{ categorie.nom }}
+                  </a>
+                {% else %}
+                  <a
+                    href="{% url 'catalogue:liste_par_categorie' slug=categorie.slug %}"
+                    class="list-group-item list-group-item-action px-2 py-2 rounded {% if request.resolver_match.kwargs.slug == categorie.slug %}active{% endif %}"
+                  >
+                    {{ categorie.nom }}
+                  </a>
+                {% endif %}
+              {% endfor %}
             </div>
           </div>
         </div>
       </div>
-    {% empty %}
-      <div class="col-12">
-        <div class="alert alert-info text-center">Aucun produit disponible.</div>
-      </div>
-    {% endfor %}
+    </aside>
   </div>
+</div>
 {% endblock %}

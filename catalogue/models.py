@@ -68,14 +68,11 @@ class Produit(models.Model):
 
     # --- Gestion des quantités / stock ---
     quantite_totale = models.PositiveIntegerField(
-        default=0, verbose_name="Quantité totale"
-    )
+        default=0, verbose_name="Quantité totale")
     quantite_vendue = models.PositiveIntegerField(
-        default=0, verbose_name="Quantité vendue"
-    )
+        default=0, verbose_name="Quantité vendue")
     quantite_annulee = models.PositiveIntegerField(
-        default=0, verbose_name="Quantité annulée"
-    )
+        default=0, verbose_name="Quantité annulée")
 
     disponible = models.BooleanField(default=True, verbose_name="Disponible")
     date_creation = models.DateTimeField(auto_now_add=True)

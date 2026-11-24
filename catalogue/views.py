@@ -1,6 +1,6 @@
 # catalogue/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Sum, Q, Count
+from django.db.models import Count, Prefetch, Q, Sum
 from django.views.generic import ListView, DetailView
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
@@ -17,7 +17,6 @@ class ProduitListView(ListView):
     context_object_name = 'produits'
 
     def get_queryset(self):
-        # Filtrer les produits disponibles et précharger catégorie + catalogues
         queryset = (
             super()
             .get_queryset()
@@ -30,7 +29,6 @@ class ProduitListView(ListView):
         slug = self.kwargs.get('slug')
 
         if catalogue_slug:
-            # Si le slug ne correspond à aucun catalogue actif, Django renvoie une erreur 404 propre
             catalogue_actif = get_object_or_404(
                 Catalogue,
                 slug=catalogue_slug,
@@ -39,7 +37,6 @@ class ProduitListView(ListView):
             queryset = queryset.filter(catalogues=catalogue_actif)
 
         if slug:
-            # Si le slug ne correspond à aucune catégorie, Django renvoie une erreur 404 propre
             categorie = get_object_or_404(Categorie, slug=slug)
             queryset = queryset.filter(categorie=categorie)
 
@@ -55,13 +52,19 @@ class ProduitListView(ListView):
             else None
         )
 
-        context['catalogues'] = Catalogue.objects.filter(actif=True).annotate(
-            nb_produits=Count(
+        produits_dispos_qs = Produit.objects.filter(
+            disponible=True
+        ).select_related('categorie')
+
+        catalogues_actifs = Catalogue.objects.filter(actif=True).prefetch_related(
+            Prefetch(
                 'produits',
-                filter=Q(produits__disponible=True),
-                distinct=True,
+                queryset=produits_dispos_qs,
+                to_attr='produits_actifs',
             )
         )
+
+        context['catalogues'] = catalogues_actifs
         context['categories'] = Categorie.objects.all()
         context['catalogue_selectionne'] = catalogue_selectionne
         return context

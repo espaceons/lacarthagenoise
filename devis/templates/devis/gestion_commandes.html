@@ -6,136 +6,245 @@
 
 {% block content %}
 <div class="my-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold"><i class="fas fa-tasks text-dark"></i> Gestion des Commandes & Devis</h2>
-        <span class="badge bg-dark fs-6">Espace Administrateur</span>
-    </div>
+    <!-- En-tête et boutons d'administration (même style que liste_produits.html) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="fas fa-tasks text-dark me-1"></i> Gestion des Commandes &amp; Devis
+            </h1>
+            <p class="text-muted small mb-0">
+                Suivez les demandes clients, filtrez par statut et mettez à jour leur avancement.
+            </p>
+        </div>
 
-    <!-- Cartes de statistiques -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-light">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Total Demandes</h6>
-                    <h3 class="fw-bold mb-0">{{ stats.total }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-warning border-4">
-                <div class="card-body text-center">
-                    <h6 class="text-warning">En attente</h6>
-                    <h3 class="fw-bold mb-0">{{ stats.attente }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-primary border-4">
-                <div class="card-body text-center">
-                    <h6 class="text-primary">En fabrication</h6>
-                    <h3 class="fw-bold mb-0">{{ stats.valide }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm border-start border-success border-4">
-                <div class="card-body text-center">
-                    <h6 class="text-success">Prêts / Livrés</h6>
-                    <h3 class="fw-bold mb-0">{{ stats.termine }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtres par statut -->
-    <div class="mb-3 d-flex flex-wrap gap-2">
-        <a href="{% url 'devis:gestion_commandes' %}" class="btn btn-sm {% if not statut_filtre %}btn-dark{% else %}btn-outline-dark{% endif %}">
-            Tous
-        </a>
-        {% for code, label in statut_choices %}
-            <a href="?statut={{ code }}" class="btn btn-sm {% if statut_filtre == code %}btn-dark{% else %}btn-outline-dark{% endif %}">
-                {{ label }}
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <a href="{% url 'catalogue:liste_catalogues_admin' %}" class="btn btn-outline-success btn-sm">
+                <i class="fas fa-book-open me-1"></i> Gérer les catalogues
             </a>
-        {% endfor %}
+            <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-tags me-1"></i> Gérer les catégories
+            </a>
+            <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
+                <i class="fas fa-boxes me-1"></i> Gérer les produits
+            </a>
+            <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-store me-1"></i> Voir la vitrine
+            </a>
+        </div>
     </div>
 
-    <!-- Tableau des commandes -->
-    <div class="card border-0 shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>#ID</th>
-                        <th>Date</th>
-                        <th>Client</th>
-                        <th>Type de client</th>
-                        <th>Contact</th>
-                        <th>Statut actuel</th>
-                        <th>Changer le statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for cmd in commandes %}
-                        <tr>
-                            <td class="fw-bold">#{{ cmd.id }}</td>
-                            <td>{{ cmd.date_creation|date:"d/m/Y H:i" }}</td>
-                            <td>
-                                {% if cmd.utilisateur %}
-                                    {{ cmd.utilisateur.get_full_name|default:cmd.utilisateur.username }}
-                                {% else %}
-                                    {{ cmd.nom_client|default:"Invité" }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if cmd.utilisateur and cmd.utilisateur.profil %}
-                                    <span class="badge bg-info text-dark">
-                                        {{ cmd.utilisateur.profil.get_type_client_display }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Visiteur</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <small>
-                                    {{ cmd.utilisateur.email|default:cmd.email_client }}<br>
-                                    {{ cmd.utilisateur.profil.telephone|default:cmd.telephone }}
-                                </small>
-                            </td>
-                            <td>
-                                {% if cmd.statut == 'attente' %}
-                                    <span class="badge bg-warning text-dark">{{ cmd.get_statut_display }}</span>
-                                {% elif cmd.statut == 'valide' %}
-                                    <span class="badge bg-primary">{{ cmd.get_statut_display }}</span>
-                                {% elif cmd.statut == 'termine' %}
-                                    <span class="badge bg-success">{{ cmd.get_statut_display }}</span>
-                                {% else %}
-                                    <span class="badge bg-danger">{{ cmd.get_statut_display }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <form method="post" action="{% url 'devis:changer_statut_commande' cmd.id %}" class="d-flex gap-1">
-                                    {% csrf_token %}
-                                    <select name="statut" class="form-select form-select-sm" style="width: auto;">
-                                        {% for code, label in statut_choices %}
-                                            <option value="{{ code }}" {% if cmd.statut == code %}selected{% endif %}>
-                                                {{ label }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-dark">OK</button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
-                                Aucune commande ou demande de devis trouvée.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Grille principale : contenu à gauche (col-lg-9) + cartes filtres à droite (col-lg-3) -->
+    <div class="row g-4">
+        <!-- COLONNE PRINCIPALE : Statistiques & Tableau des commandes -->
+        <div class="col-lg-9">
+            <!-- Cartes de statistiques -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm bg-light h-100">
+                        <div class="card-body text-center py-3">
+                            <h6 class="text-muted small mb-1">Total Demandes</h6>
+                            <h3 class="fw-bold mb-0">{{ stats.total }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm border-start border-warning border-4 h-100">
+                        <div class="card-body text-center py-3">
+                            <h6 class="text-warning small mb-1">En attente</h6>
+                            <h3 class="fw-bold mb-0">{{ stats.attente }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm border-start border-primary border-4 h-100">
+                        <div class="card-body text-center py-3">
+                            <h6 class="text-primary small mb-1">En fabrication</h6>
+                            <h3 class="fw-bold mb-0">{{ stats.valide }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm border-start border-success border-4 h-100">
+                        <div class="card-body text-center py-3">
+                            <h6 class="text-success small mb-1">Prêts / Livrés</h6>
+                            <h3 class="fw-bold mb-0">{{ stats.termine }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bandeau filtre actif (même style que liste_produits.html) -->
+            {% if statut_filtre %}
+                <div class="d-flex flex-wrap justify-content-between align-items-center bg-light rounded p-3 mb-4 border">
+                    <div class="small">
+                        <span class="text-muted">Filtre actif :</span>
+                        {% for code, label in statut_choices %}
+                            {% if statut_filtre == code %}
+                                <span class="badge bg-dark ms-1">{{ label }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'devis:gestion_commandes' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times me-1"></i> Réinitialiser le filtre
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Tableau des commandes -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#ID</th>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Type de client</th>
+                                    <th>Contact</th>
+                                    <th>Statut actuel</th>
+                                    <th>Changer le statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cmd in commandes %}
+                                    <tr>
+                                        <td class="fw-bold">#{{ cmd.id }}</td>
+                                        <td class="text-nowrap small">{{ cmd.date_creation|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            {% if cmd.utilisateur %}
+                                                {{ cmd.utilisateur.get_full_name|default:cmd.utilisateur.username }}
+                                            {% else %}
+                                                {{ cmd.nom_client|default:"Invité" }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if cmd.utilisateur and cmd.utilisateur.profil %}
+                                                <span class="badge bg-info text-dark">
+                                                    {{ cmd.utilisateur.profil.get_type_client_display }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Visiteur</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>
+                                                {{ cmd.utilisateur.email|default:cmd.email_client }}<br>
+                                                {{ cmd.utilisateur.profil.telephone|default:cmd.telephone }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if cmd.statut == 'attente' %}
+                                                <span class="badge bg-warning text-dark">{{ cmd.get_statut_display }}</span>
+                                            {% elif cmd.statut == 'valide' %}
+                                                <span class="badge bg-primary">{{ cmd.get_statut_display }}</span>
+                                            {% elif cmd.statut == 'Livraison' %}
+                                                <span class="badge bg-info text-dark">{{ cmd.get_statut_display }}</span>
+                                            {% elif cmd.statut == 'termine' %}
+                                                <span class="badge bg-success">{{ cmd.get_statut_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{{ cmd.get_statut_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form method="post" action="{% url 'devis:changer_statut_commande' cmd.id %}" class="d-flex gap-1">
+                                                {% csrf_token %}
+                                                <select name="statut" class="form-select form-select-sm" style="width: auto;">
+                                                    {% for code, label in statut_choices %}
+                                                        <option value="{{ code }}" {% if cmd.statut == code %}selected{% endif %}>
+                                                            {{ label }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-dark">OK</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">
+                                            Aucune commande ou demande de devis trouvée.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- COLONNE DROITE : Cartes Filtres (identique à liste_produits.html) -->
+        <aside class="col-lg-3">
+            <div class="position-sticky" style="top: 1.5rem;">
+                <!-- Carte Filtre par Statut -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+                            <i class="fas fa-filter me-1"></i> Statuts
+                        </h2>
+                        <div class="list-group list-group-flush">
+                            <a
+                                href="{% url 'devis:gestion_commandes' %}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if not statut_filtre %}active{% endif %}"
+                            >
+                                <span>Toutes les demandes</span>
+                                <span class="badge {% if not statut_filtre %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                                    {{ stats.total }}
+                                </span>
+                            </a>
+
+                            {% for code, label in statut_choices %}
+                                <a
+                                    href="?statut={{ code }}"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if statut_filtre == code %}active{% endif %}"
+                                >
+                                    <span>{{ label }}</span>
+                                    <span class="badge {% if statut_filtre == code %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                                        {% if code == 'attente' %}{{ stats.attente }}{% elif code == 'valide' %}{{ stats.valide }}{% elif code == 'termine' %}{{ stats.termine }}{% elif code == 'annule' %}{{ stats.annule }}{% elif code == 'Livraison' %}{{ stats.livraison|default:0 }}{% else %}0{% endif %}
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carte Accès Rapide Administration -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+                            <i class="fas fa-cog me-1"></i> Administration
+                        </h2>
+                        <div class="list-group list-group-flush">
+                            <a
+                                href="{% url 'devis:gestion_commandes' %}"
+                                class="list-group-item list-group-item-action px-2 py-2 rounded active"
+                            >
+                                <i class="fas fa-tasks me-2"></i> Commandes &amp; Devis
+                            </a>
+                            <a
+                                href="{% url 'catalogue:admin_produits' %}"
+                                class="list-group-item list-group-item-action px-2 py-2 rounded"
+                            >
+                                <i class="fas fa-boxes me-2"></i> Produits
+                            </a>
+                            <a
+                                href="{% url 'catalogue:liste_catalogues_admin' %}"
+                                class="list-group-item list-group-item-action px-2 py-2 rounded"
+                            >
+                                <i class="fas fa-book-open me-2"></i> Catalogues
+                            </a>
+                            <a
+                                href="{% url 'catalogue:liste_categories_admin' %}"
+                                class="list-group-item list-group-item-action px-2 py-2 rounded"
+                            >
+                                <i class="fas fa-tags me-2"></i> Catégories
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
     </div>
 </div>
 {% endblock %}
