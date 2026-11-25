@@ -4,8 +4,45 @@
   {% if catalogue_selectionne %}
     {{ catalogue_selectionne.nom }} - La Carthagenoise
   {% else %}
-    Nos Catalogues &amp; Produits - La Carthagenoise
+    Nos Catalogues & Produits - La Carthagenoise
   {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .product-card {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .product-media {
+    background-color: #f4f6f8;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .product-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.35s ease;
+  }
+
+  .product-card:hover .product-media img {
+    transform: scale(1.04);
+  }
+
+  .product-placeholder {
+    background: linear-gradient(135deg, #f8f9fa 0%, #eef1f4 100%);
+    color: #8c96a2;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -63,29 +100,28 @@
                 href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=cat_b.slug %}"
                 class="btn btn-outline-dark btn-sm"
               >
-                Voir le catalogue ({{ cat_b.produits_actifs|length }})
+                Voir {{ cat_b.nom }} ({{ cat_b.produits_actifs|length }})
               </a>
             </div>
 
             <div class="row g-4">
               {% for produit in cat_b.produits_actifs %}
                 <div class="col-md-6 col-xl-4">
-                  <div class="card h-100 shadow-sm border-0">
-                    {% if produit.image %}
-                      <img
-                        src="{{ produit.image.url }}"
-                        class="card-img-top"
-                        alt="{{ produit.nom }}"
-                        style="height: 200px; object-fit: cover;"
-                      />
-                    {% else %}
-                      <div
-                        class="bg-light d-flex align-items-center justify-content-center text-muted"
-                        style="height: 200px;"
-                      >
-                        <i class="fas fa-image fa-2x"></i>
-                      </div>
-                    {% endif %}
+                  <div class="card product-card h-100 shadow-sm border-0">
+                    <div class="ratio ratio-4x3 product-media overflow-hidden">
+                      {% if produit.image %}
+                        <img
+                          src="{{ produit.image.url }}"
+                          alt="{{ produit.nom }}"
+                          loading="lazy"
+                        />
+                      {% else %}
+                        <div class="product-placeholder d-flex flex-column align-items-center justify-content-center h-100">
+                          <i class="fas fa-image fa-2x mb-1"></i>
+                          <span class="small">Aucune image</span>
+                        </div>
+                      {% endif %}
+                    </div>
 
                     <div class="card-body d-flex flex-column">
                       <div class="d-flex justify-content-between align-items-center mb-1">
@@ -210,22 +246,21 @@
         <div class="row g-4">
           {% for produit in produits %}
             <div class="col-md-6 col-xl-4">
-              <div class="card h-100 shadow-sm border-0">
-                {% if produit.image %}
-                  <img
-                    src="{{ produit.image.url }}"
-                    class="card-img-top"
-                    alt="{{ produit.nom }}"
-                    style="height: 200px; object-fit: cover;"
-                  />
-                {% else %}
-                  <div
-                    class="bg-light d-flex align-items-center justify-content-center text-muted"
-                    style="height: 200px;"
-                  >
-                    <i class="fas fa-image fa-2x"></i>
-                  </div>
-                {% endif %}
+              <div class="card product-card h-100 shadow-sm border-0">
+                <div class="ratio ratio-4x3 product-media overflow-hidden">
+                  {% if produit.image %}
+                    <img
+                      src="{{ produit.image.url }}"
+                      alt="{{ produit.nom }}"
+                      loading="lazy"
+                    />
+                  {% else %}
+                    <div class="product-placeholder d-flex flex-column align-items-center justify-content-center h-100">
+                      <i class="fas fa-image fa-2x mb-1"></i>
+                      <span class="small">Aucune image</span>
+                    </div>
+                  {% endif %}
+                </div>
 
                 <div class="card-body d-flex flex-column">
                   <div class="d-flex justify-content-between align-items-center mb-1">

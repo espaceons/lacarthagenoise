@@ -111,7 +111,10 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+# envoie email :
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'contact@lacarthagenoise.com'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

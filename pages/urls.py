@@ -1,15 +1,13 @@
-# pages/urls.py
 from django.urls import path
-# Assurez-vous d'avoir bien importé les classes dans pages/views.py
-from .views import AboutView, ContactView
-
+from . import views
 
 app_name = 'pages'
 
-
 urlpatterns = [
-    # Utilisation des Class-Based Views (méthode as_view())
-    path('a-propos/', AboutView.as_view(), name='a_propos'),
-    # Note : Pour Contact, il faudra peut-être remplacer par une FormView plus tard
-    path('contact/', ContactView.as_view(), name='contact'),
+    path('a-propos/', views.AboutView, name='a_propos'),
+    path('contact/', views.ContactView, name='contact'),
+    path('administration/messages/', views.liste_messages_contact,         name='liste_messages_contact'),
+    path('administration/messages/<int:message_id>/etat/',         views.marquer_message_contact, name='marquer_message_contact'),
+    path('administration/messages/<int:message_id>/supprimer/',         views.supprimer_message_contact, name='supprimer_message_contact'),
+    path('administration/messages/<int:message_id>/repondre/', views.repondre_message_contact, name='repondre_message_contact'),
 ]

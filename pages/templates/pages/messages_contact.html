@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Boîte de Réception Contact - La Carthagenoise
+{% endblock %}
+
+{% block content %}
+<div class="my-4">
+    <!-- En-tête -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="fas fa-inbox text-dark me-1"></i> Réception Messages Contact
+            </h1>
+            <p class="text-muted small mb-0">
+                Consultez les messages envoyés depuis la page Contact et répondez directement depuis cette page.
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <a href="{% url 'devis:gestion_commandes' %}" class="btn btn-outline-dark btn-sm">
+                <i class="fas fa-tasks me-1"></i> Commandes & Devis
+            </a>
+            <a href="{% url 'pages:contact' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-external-link-alt me-1"></i> Voir la page Contact
+            </a>
+        </div>
+    </div>
+
+    <!-- Grille principale : contenu à gauche (col-lg-9) + filtres à droite (col-lg-3) -->
+    <div class="row g-4">
+        <!-- COLONNE PRINCIPALE -->
+        <div class="col-lg-9">
+            <!-- Cartes statistiques -->
+            <div class="row g-3 mb-4">
+                <div class="col-4">
+                    <div class="card border-0 shadow-sm bg-light h-100">
+                        <div class="card-body text-center py-3">
+                            <h6 class="text-muted small mb-1">Total Messages</h6>
+                            <h3 class="fw-bold mb-0">{{ stats.total }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card border-0 shadow-sm border-start border-warning border-4 h-100">
+                        <div class="card-body text-center py-3">
+                            <h6 class="text-warning small mb-1">Non lus</h6>
+                            <h3 class="fw-bold mb-0">{{ stats.non_lus }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card border-0 shadow-sm border-start border-success border-4 h-100">
+                        <div class="card-body text-center py-3">
+                            <h6 class="text-success small mb-1">Lus</h6>
+                            <h3 class="fw-bold mb-0">{{ stats.lus }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bandeau filtre actif -->
+            {% if etat_filtre or recherche %}
+                <div class="d-flex flex-wrap justify-content-between align-items-center bg-light rounded p-3 mb-4 border">
+                    <div class="small">
+                        <span class="text-muted">Filtre actif :</span>
+                        {% if etat_filtre == 'non_lu' %}
+                            <span class="badge bg-warning text-dark ms-1">Non lus</span>
+                        {% elif etat_filtre == 'lu' %}
+                            <span class="badge bg-success ms-1">Lus</span>
+                        {% endif %}
+                        {% if recherche %}
+                            <span class="badge bg-primary ms-1">Recherche : {{ recherche }}</span>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'pages:liste_messages_contact' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times me-1"></i> Réinitialiser
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Tableau des messages -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>État</th>
+                                    <th>Date</th>
+                                    <th>Expéditeur</th>
+                                    <th>Sujet & Extrait</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for msg in messages_contact %}
+                                    <tr class="{% if not msg.lu %}table-warning bg-opacity-25{% endif %}">
+                                        <td class="text-nowrap">
+                                            {% if msg.lu %}
+                                                <span class="badge bg-success">Lu</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Non lu</span>
+                                            {% endif %}
+                                            {% if msg.repondu %}
+                                                <span class="badge bg-info text-dark d-block mt-1">
+                                                    <i class="fas fa-reply me-1"></i>Répondu
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-nowrap small text-muted">
+                                            {{ msg.date_envoi|date:"d/m/Y H:i" }}
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold">{{ msg.nom }}</div>
+                                            <div class="small text-primary">{{ msg.email }}</div>
+                                            {% if msg.telephone %}
+                                                <div class="small text-muted">{{ msg.telephone }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">{{ msg.sujet }}</div>
+                                            <div class="small text-muted">{{ msg.message|truncatewords:16 }}</div>
+                                        </td>
+                                        <td class="text-end text-nowrap">
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-dark"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalMessage{{ msg.id }}"
+                                                title="Lire et répondre"
+                                            >
+                                                <i class="fas fa-reply me-1"></i> Lire / Répondre
+                                            </button>
+
+                                            <form method="post" action="{% url 'pages:marquer_message_contact' msg.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    title="{% if msg.lu %}Marquer comme non lu{% else %}Marquer comme lu{% endif %}"
+                                                >
+                                                    <i class="fas {% if msg.lu %}fa-envelope{% else %}fa-envelope-open{% endif %}"></i>
+                                                </button>
+                                            </form>
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'pages:supprimer_message_contact' msg.id %}"
+                                                class="d-inline"
+                                                onsubmit="return confirm('Supprimer ce message de contact ?');"
+                                            >
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modale de lecture et réponse directe sur la même page -->
+                                    <div class="modal fade" id="modalMessage{{ msg.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold">{{ msg.sujet }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                                </div>
+
+                                                <div class="modal-body">
+                                                    <!-- Coordonnées et message reçu -->
+                                                    <div class="bg-light rounded p-3 mb-3 small border">
+                                                        <div><strong>De :</strong> {{ msg.nom }} <{{ msg.email }}></div>
+                                                        {% if msg.telephone %}
+                                                            <div><strong>Téléphone :</strong> {{ msg.telephone }}</div>
+                                                        {% endif %}
+                                                        <div><strong>Reçu le :</strong> {{ msg.date_envoi|date:"d/m/Y à H:i" }}</div>
+                                                    </div>
+
+                                                    <div class="p-3 border rounded mb-4" style="white-space: pre-line;">{{ msg.message }}</div>
+
+                                                    <!-- Historique de réponse si déjà répondu -->
+                                                    {% if msg.repondu and msg.reponse %}
+                                                        <div class="alert alert-info small mb-4">
+                                                            <div class="fw-bold mb-1">
+                                                                <i class="fas fa-check-circle me-1"></i>
+                                                                Dernière réponse envoyée{% if msg.date_reponse %} le {{ msg.date_reponse|date:"d/m/Y à H:i" }}{% endif %} :
+                                                            </div>
+                                                            <div style="white-space: pre-line;">{{ msg.reponse }}</div>
+                                                        </div>
+                                                    {% endif %}
+
+                                                    <!-- Formulaire de réponse sur la même page -->
+                                                    <form method="post" action="{% url 'pages:repondre_message_contact' msg.id %}">
+                                                        {% csrf_token %}
+                                                        <h6 class="fw-bold mb-3">
+                                                            <i class="fas fa-paper-plane me-1"></i> Répondre à {{ msg.nom }} ({{ msg.email }})
+                                                        </h6>
+
+                                                        <div class="mb-3">
+                                                            <label for="sujetReponse{{ msg.id }}" class="form-label small fw-semibold">Objet de l'email</label>
+                                                            <input
+                                                                type="text"
+                                                                id="sujetReponse{{ msg.id }}"
+                                                                name="sujet_reponse"
+                                                                class="form-control form-control-sm"
+                                                                value="Re: {{ msg.sujet }}"
+                                                                required
+                                                            >
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label for="contenuReponse{{ msg.id }}" class="form-label small fw-semibold">Votre réponse</label>
+                                                            <textarea
+                                                                id="contenuReponse{{ msg.id }}"
+                                                                name="contenu_reponse"
+                                                                rows="5"
+                                                                class="form-control"
+                                                                placeholder="Rédigez votre réponse ici..."
+                                                                required
+                                                            ></textarea>
+                                                        </div>
+
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                                                                Fermer
+                                                            </button>
+                                                            <button type="submit" class="btn btn-dark btn-sm">
+                                                                <i class="fas fa-paper-plane me-1"></i> Envoyer la réponse
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            Aucun message de contact trouvé.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLONNE DROITE : Filtres -->
+        <aside class="col-lg-3">
+            <div class="position-sticky" style="top: 1.5rem;">
+                <!-- Recherche -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+                            <i class="fas fa-search me-1"></i> Rechercher
+                        </h2>
+                        <form method="get" action="{% url 'pages:liste_messages_contact' %}">
+                            {% if etat_filtre %}
+                                <input type="hidden" name="etat" value="{{ etat_filtre }}">
+                            {% endif %}
+                            <div class="input-group input-group-sm mb-2">
+                                <input
+                                    type="text"
+                                    name="q"
+                                    value="{{ recherche }}"
+                                    class="form-control"
+                                    placeholder="Nom, email, sujet..."
+                                >
+                                <button type="submit" class="btn btn-dark">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            {% if recherche %}
+                                <a
+                                    href="{% url 'pages:liste_messages_contact' %}{% if etat_filtre %}?etat={{ etat_filtre }}{% endif %}"
+                                    class="btn btn-outline-secondary btn-sm w-100"
+                                >
+                                    <i class="fas fa-times me-1"></i> Effacer la recherche
+                                </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Filtre par état -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+                            <i class="fas fa-filter me-1"></i> État des messages
+                        </h2>
+                        <div class="list-group list-group-flush">
+                            <a
+                                href="{% url 'pages:liste_messages_contact' %}{% if recherche %}?q={{ recherche|urlencode }}{% endif %}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if not etat_filtre %}active{% endif %}"
+                            >
+                                <span>Tous</span>
+                                <span class="badge {% if not etat_filtre %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                                    {{ stats.total }}
+                                </span>
+                            </a>
+                            <a
+                                href="?etat=non_lu{% if recherche %}&q={{ recherche|urlencode }}{% endif %}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if etat_filtre == 'non_lu' %}active{% endif %}"
+                            >
+                                <span>Non lus</span>
+                                <span class="badge {% if etat_filtre == 'non_lu' %}bg-light text-dark{% else %}bg-warning text-dark{% endif %} rounded-pill">
+                                    {{ stats.non_lus }}
+                                </span>
+                            </a>
+                            <a
+                                href="?etat=lu{% if recherche %}&q={{ recherche|urlencode }}{% endif %}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if etat_filtre == 'lu' %}active{% endif %}"
+                            >
+                                <span>Lus</span>
+                                <span class="badge {% if etat_filtre == 'lu' %}bg-light text-dark{% else %}bg-success{% endif %} rounded-pill">
+                                    {{ stats.lus }}
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

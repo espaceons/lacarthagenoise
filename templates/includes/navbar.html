@@ -60,6 +60,9 @@
               <li class="nav-item dropdown">
                 <button class="btn btn-dark dropdown-toggle text-white fw-bold border-0 bg-transparent text-nowrap" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                   <i class="fas fa-user-circle me-1"></i> {{ user.get_full_name|default:user.username }}
+                  {% if user.is_staff and nb_messages_non_lus %}
+                    <span class="badge bg-danger rounded-pill ms-1">{{ nb_messages_non_lus }}</span>
+                  {% endif %}
                 </button>
 
                 <!-- Menu déroulant -->
@@ -85,6 +88,16 @@
                     <li>
                       <a class="dropdown-item fw-bold text-info" href="{% url 'utilisateur:admin_utilisateurs' %}">
                         <i class="fas fa-users-cog me-1"></i> Gestion des Utilisateurs
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item fw-bold text-warning d-flex justify-content-between align-items-center" href="{% url 'pages:liste_messages_contact' %}">
+                        <span>
+                          <i class="fas fa-inbox me-1"></i> Boîte de Réception
+                        </span>
+                        {% if nb_messages_non_lus %}
+                          <span class="badge bg-danger rounded-pill ms-2">{{ nb_messages_non_lus }}</span>
+                        {% endif %}
                       </a>
                     </li>
                   {% endif %}
