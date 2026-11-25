@@ -69,7 +69,7 @@
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>N° Devis</th>
+                                <th>N° Devis (PDF)</th>
                                 <th>Date de demande</th>
                                 <th>Statut de traitement</th>
                             </tr>
@@ -77,13 +77,25 @@
                         <tbody>
                             {% for devis in mes_devis %}
                                 <tr>
-                                    <td class="fw-bold">#{{ devis.id }}</td>
+                                    <td class="fw-bold">
+                                        <a
+                                            href="{% url 'devis:devis_pdf' devis.id %}"
+                                            target="_blank"
+                                            class="text-decoration-none text-dark"
+                                            title="Ouvrir le devis #{{ devis.id }} en PDF"
+                                        >
+                                            <i class="fas fa-file-pdf text-danger me-1"></i>
+                                            #{{ devis.id }} — {{ user.get_full_name|default:user.username }}
+                                        </a>
+                                    </td>
                                     <td>{{ devis.date_creation|date:"d/m/Y à H:i" }}</td>
                                     <td>
                                         {% if devis.statut == 'attente' %}
                                             <span class="badge bg-warning text-dark">{{ devis.get_statut_display }}</span>
                                         {% elif devis.statut == 'valide' %}
                                             <span class="badge bg-primary">{{ devis.get_statut_display }}</span>
+                                        {% elif devis.statut == 'Livraison' %}
+                                            <span class="badge bg-info text-dark">{{ devis.get_statut_display }}</span>
                                         {% elif devis.statut == 'termine' %}
                                             <span class="badge bg-success">{{ devis.get_statut_display }}</span>
                                         {% else %}

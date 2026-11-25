@@ -33,9 +33,11 @@ def inscription(request):
 @login_required
 def profil(request):
     """Affiche le profil de l'utilisateur connecté et ses demandes de devis."""
-    # Récupère tous les devis de l'utilisateur connecté, du plus récent au plus ancien
-    mes_devis = Devis.objects.filter(
-        utilisateur=request.user).order_by('-date_creation')
+    mes_devis = (
+        Devis.objects.filter(utilisateur=request.user)
+        .prefetch_related('lignedevis_set__produit')
+        .order_by('-date_creation')
+    )
 
     context = {
         'user': request.user,

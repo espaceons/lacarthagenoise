@@ -1,4 +1,9 @@
 # devis/views.py
+# from weasyprint import HTML
+from xhtml2pdf import pisa
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
@@ -7,6 +12,8 @@ from django.db import transaction
 
 from catalogue.models import Produit
 from .models import Devis, LigneDevis
+from django.db import transaction
+from django.db.models import Q
 
 # Clé de session utilisée pour stocker le panier de devis
 DEVIS_SESSION_KEY = 'devis_panier'
@@ -239,24 +246,47 @@ def submit_devis(request):
 @staff_member_required(login_url='utilisateur:login')
 def gestion_commandes(request):
     """Tableau de bord administrateur pour gérer toutes les demandes de devis."""
-    statut_filtre = request.GET.get('statut', '')
+    statut_filtre = request.GET.get('statut', '').strip()
+    client_filtre = request.GET.get('client', '').strip()
+    email_filtre = request.GET.get('email', '').strip()
 
-    commandes = Devis.objects.all().order_by('-date_creation')
+    commandes = (
+        Devis.objects.select_related('utilisateur__profil')
+        .prefetch_related('lignedevis_set__produit')
+        .order_by('-date_creation')
+    )
+
     if statut_filtre:
         commandes = commandes.filter(statut=statut_filtre)
+
+    if client_filtre == 'inscrit':
+        commandes = commandes.filter(utilisateur__isnull=False)
+    elif client_filtre == 'visiteur':
+        commandes = commandes.filter(utilisateur__isnull=True)
+
+    if email_filtre:
+        commandes = commandes.filter(
+            Q(email_client__icontains=email_filtre)
+            | Q(utilisateur__email__icontains=email_filtre)
+        )
 
     stats = {
         'total': Devis.objects.count(),
         'attente': Devis.objects.filter(statut='attente').count(),
         'valide': Devis.objects.filter(statut='valide').count(),
+        'livraison': Devis.objects.filter(statut='Livraison').count(),
         'termine': Devis.objects.filter(statut='termine').count(),
         'annule': Devis.objects.filter(statut='annule').count(),
+        'clients_inscrits': Devis.objects.filter(utilisateur__isnull=False).count(),
+        'visiteurs': Devis.objects.filter(utilisateur__isnull=True).count(),
     }
 
     context = {
         'commandes': commandes,
         'stats': stats,
         'statut_filtre': statut_filtre,
+        'client_filtre': client_filtre,
+        'email_filtre': email_filtre,
         'statut_choices': Devis.STATUT_CHOICES,
     }
     return render(request, 'devis/gestion_commandes.html', context)
@@ -278,3 +308,48 @@ def changer_statut_commande(request, devis_id):
             )
 
     return redirect('devis:gestion_commandes')
+
+
+@staff_member_required(login_url='utilisateur:login')
+def devis_pdf(request, devis_id):
+    """Génère et retourne le document PDF d'un devis donné avec xhtml2pdf."""
+    devis = get_object_or_404(
+        Devis.objects.select_related('utilisateur__profil').prefetch_related(
+            'lignedevis_set__produit'),
+        pk=devis_id,
+    )
+
+    lignes_avec_total = []
+    total_general = Decimal('0.00')
+
+    for ligne in devis.lignedevis_set.all():
+        prix_unit = ligne.prix_unitaire if ligne.prix_unitaire is not None else Decimal(
+            '0.00')
+        sous_total = prix_unit * ligne.quantite
+        total_general += sous_total
+        lignes_avec_total.append({
+            'ligne': ligne,
+            'prix_unitaire': prix_unit,
+            'sous_total': sous_total,
+        })
+
+    context = {
+        'devis': devis,
+        'lignes_avec_total': lignes_avec_total,
+        'total_general': total_general,
+    }
+
+    html_string = render_to_string(
+        'devis/devis_pdf.html', context, request=request)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="devis_{devis.id}.pdf"'
+
+    pisa_status = pisa.CreatePDF(html_string, dest=response, encoding='UTF-8')
+    if pisa_status.err:
+        return HttpResponse(
+            f"Erreur lors de la génération du PDF pour le devis #{devis.id}.",
+            status=500,
+        )
+
+    return response

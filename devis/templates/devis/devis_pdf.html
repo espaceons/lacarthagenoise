@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Devis #{{ devis.id }} - La Carthagenoise</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 18mm;
+    }
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 12px;
+      color: #212529;
+    }
+    .header-table {
+      width: 100%;
+      border-bottom: 2px solid #212529;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+    }
+    .header-table td {
+      border: none;
+      padding: 0;
+      vertical-align: top;
+    }
+    .company-name {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .doc-title {
+      text-align: right;
+    }
+    .doc-title h1 {
+      font-size: 18px;
+      margin: 0 0 4px 0;
+    }
+    .meta-box {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+    }
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 18px;
+    }
+    table.items th,
+    table.items td {
+      border: 1px solid #dee2e6;
+      padding: 8px 10px;
+    }
+    table.items th {
+      background-color: #f1f3f5;
+      font-weight: bold;
+      text-align: left;
+    }
+    .text-end {
+      text-align: right;
+    }
+    .text-center {
+      text-align: center;
+    }
+    .total-row td {
+      font-weight: bold;
+      background-color: #f8f9fa;
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 24px;
+      font-size: 10px;
+      color: #6c757d;
+      text-align: center;
+      border-top: 1px solid #dee2e6;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <table class="header-table">
+    <tr>
+      <td>
+        <div class="company-name">La Carthagenoise</div>
+        <div>Devis & Commande</div>
+      </td>
+      <td class="doc-title">
+        <h1>DEVIS N° #{{ devis.id }}</h1>
+        <div>Date : {{ devis.date_creation|date:"d/m/Y H:i" }}</div>
+        <div>Statut : <strong>{{ devis.get_statut_display }}</strong></div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="meta-box">
+    <strong>Client :</strong>
+    {% if devis.utilisateur %}
+      {{ devis.utilisateur.get_full_name|default:devis.utilisateur.username }}
+      {% if devis.utilisateur.profil %}
+        ({{ devis.utilisateur.profil.get_type_client_display }})
+      {% endif %}
+    {% else %}
+      {{ devis.nom_client|default:"Invité" }} (Visiteur)
+    {% endif %}
+    <br>
+    <strong>Email :</strong> {{ devis.utilisateur.email|default:devis.email_client|default:"—" }}<br>
+    <strong>Téléphone :</strong> {{ devis.utilisateur.profil.telephone|default:devis.telephone|default:"—" }}
+  </div>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th>Réf.</th>
+        <th>Article</th>
+        <th class="text-center">Quantité</th>
+        <th class="text-end">Prix unitaire</th>
+        <th class="text-end">Sous-total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in lignes_avec_total %}
+        <tr>
+          <td>{{ item.ligne.produit.reference }}</td>
+          <td>{{ item.ligne.produit.nom }}</td>
+          <td class="text-center">{{ item.ligne.quantite }}</td>
+          <td class="text-end">{{ item.prix_unitaire }} DT</td>
+          <td class="text-end">{{ item.sous_total }} DT</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">Aucun article dans ce devis.</td>
+        </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="4" class="text-end">Total général</td>
+        <td class="text-end">{{ total_general }} DT</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    Document généré depuis l'espace d'administration — La Carthagenoise
+  </div>
+</body>
+</html>

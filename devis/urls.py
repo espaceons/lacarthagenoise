@@ -31,4 +31,6 @@ urlpatterns = [
     # Espace Administrateur personnalisé
     path('administration/commandes/', views.gestion_commandes, name='gestion_commandes'),
     path('administration/commandes/<int:devis_id>/statut/', views.changer_statut_commande, name='changer_statut_commande'),
+    path('administration/commandes/<int:devis_id>/pdf/',
+         views.devis_pdf, name='devis_pdf'),
 ]

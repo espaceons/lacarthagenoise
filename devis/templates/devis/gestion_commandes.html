@@ -6,14 +6,14 @@
 
 {% block content %}
 <div class="my-4">
-    <!-- En-tête et boutons d'administration (même style que liste_produits.html) -->
+    <!-- En-tête et boutons d'administration -->
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">
-                <i class="fas fa-tasks text-dark me-1"></i> Gestion des Commandes &amp; Devis
+                <i class="fas fa-tasks text-dark me-1"></i> Gestion des Commandes & Devis
             </h1>
             <p class="text-muted small mb-0">
-                Suivez les demandes clients, filtrez par statut et mettez à jour leur avancement.
+                Suivez les demandes clients, filtrez par statut, type de client ou email et mettez à jour leur avancement.
             </p>
         </div>
 
@@ -73,19 +73,29 @@
                 </div>
             </div>
 
-            <!-- Bandeau filtre actif (même style que liste_produits.html) -->
-            {% if statut_filtre %}
+            <!-- Bandeau filtre actif (statut, type de client et/ou email) -->
+            {% if statut_filtre or client_filtre or email_filtre %}
                 <div class="d-flex flex-wrap justify-content-between align-items-center bg-light rounded p-3 mb-4 border">
                     <div class="small">
                         <span class="text-muted">Filtre actif :</span>
-                        {% for code, label in statut_choices %}
-                            {% if statut_filtre == code %}
-                                <span class="badge bg-dark ms-1">{{ label }}</span>
-                            {% endif %}
-                        {% endfor %}
+                        {% if statut_filtre %}
+                            {% for code, label in statut_choices %}
+                                {% if statut_filtre == code %}
+                                    <span class="badge bg-dark ms-1">{{ label }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        {% if client_filtre == 'inscrit' %}
+                            <span class="badge bg-info text-dark ms-1">Client inscrit</span>
+                        {% elif client_filtre == 'visiteur' %}
+                            <span class="badge bg-secondary ms-1">Visiteur</span>
+                        {% endif %}
+                        {% if email_filtre %}
+                            <span class="badge bg-primary ms-1">Email : {{ email_filtre }}</span>
+                        {% endif %}
                     </div>
                     <a href="{% url 'devis:gestion_commandes' %}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-times me-1"></i> Réinitialiser le filtre
+                        <i class="fas fa-times me-1"></i> Réinitialiser les filtres
                     </a>
                 </div>
             {% endif %}
@@ -99,7 +109,7 @@
                                 <tr>
                                     <th>#ID</th>
                                     <th>Date</th>
-                                    <th>Client</th>
+                                    <th>Client (PDF)</th>
                                     <th>Type de client</th>
                                     <th>Contact</th>
                                     <th>Statut actuel</th>
@@ -112,11 +122,19 @@
                                         <td class="fw-bold">#{{ cmd.id }}</td>
                                         <td class="text-nowrap small">{{ cmd.date_creation|date:"d/m/Y H:i" }}</td>
                                         <td>
-                                            {% if cmd.utilisateur %}
-                                                {{ cmd.utilisateur.get_full_name|default:cmd.utilisateur.username }}
-                                            {% else %}
-                                                {{ cmd.nom_client|default:"Invité" }}
-                                            {% endif %}
+                                            <a
+                                                href="{% url 'devis:devis_pdf' cmd.id %}"
+                                                target="_blank"
+                                                class="fw-bold text-decoration-none text-dark"
+                                                title="Ouvrir le devis #{{ cmd.id }} au format PDF"
+                                            >
+                                                <i class="fas fa-file-pdf text-danger me-1"></i>
+                                                {% if cmd.utilisateur %}
+                                                    {{ cmd.utilisateur.get_full_name|default:cmd.utilisateur.username }}
+                                                {% else %}
+                                                    {{ cmd.nom_client|default:"Invité" }}
+                                                {% endif %}
+                                            </a>
                                         </td>
                                         <td>
                                             {% if cmd.utilisateur and cmd.utilisateur.profil %}
@@ -174,9 +192,49 @@
             </div>
         </div>
 
-        <!-- COLONNE DROITE : Cartes Filtres (identique à liste_produits.html) -->
+        <!-- COLONNE DROITE : Cartes Filtres -->
         <aside class="col-lg-3">
             <div class="position-sticky" style="top: 1.5rem;">
+                <!-- Carte Filtre par Email -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+                            <i class="fas fa-envelope me-1"></i> Filtrer par email
+                        </h2>
+                        <form method="get" action="{% url 'devis:gestion_commandes' %}">
+                            {% if statut_filtre %}
+                                <input type="hidden" name="statut" value="{{ statut_filtre }}">
+                            {% endif %}
+                            {% if client_filtre %}
+                                <input type="hidden" name="client" value="{{ client_filtre }}">
+                            {% endif %}
+
+                            <div class="input-group input-group-sm mb-2">
+                                <input
+                                    type="text"
+                                    name="email"
+                                    value="{{ email_filtre }}"
+                                    class="form-control"
+                                    placeholder="Ex: client@exemple.com"
+                                    aria-label="Filtrer par email"
+                                >
+                                <button type="submit" class="btn btn-dark" title="Rechercher">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+
+                            {% if email_filtre %}
+                                <a
+                                    href="{% url 'devis:gestion_commandes' %}?{% if statut_filtre %}statut={{ statut_filtre }}{% endif %}{% if statut_filtre and client_filtre %}&{% endif %}{% if client_filtre %}client={{ client_filtre }}{% endif %}"
+                                    class="btn btn-outline-secondary btn-sm w-100"
+                                >
+                                    <i class="fas fa-times me-1"></i> Effacer l'email
+                                </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
                 <!-- Carte Filtre par Statut -->
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
@@ -185,7 +243,7 @@
                         </h2>
                         <div class="list-group list-group-flush">
                             <a
-                                href="{% url 'devis:gestion_commandes' %}"
+                                href="{% url 'devis:gestion_commandes' %}?{% if client_filtre %}client={{ client_filtre }}{% endif %}{% if client_filtre and email_filtre %}&{% endif %}{% if email_filtre %}email={{ email_filtre|urlencode }}{% endif %}"
                                 class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if not statut_filtre %}active{% endif %}"
                             >
                                 <span>Toutes les demandes</span>
@@ -196,7 +254,7 @@
 
                             {% for code, label in statut_choices %}
                                 <a
-                                    href="?statut={{ code }}"
+                                    href="?statut={{ code }}{% if client_filtre %}&client={{ client_filtre }}{% endif %}{% if email_filtre %}&email={{ email_filtre|urlencode }}{% endif %}"
                                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if statut_filtre == code %}active{% endif %}"
                                 >
                                     <span>{{ label }}</span>
@@ -205,6 +263,46 @@
                                     </span>
                                 </a>
                             {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carte Filtre par Type de Client -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <h2 class="h6 fw-bold text-uppercase text-muted mb-3">
+                            <i class="fas fa-users me-1"></i> Type de client
+                        </h2>
+                        <div class="list-group list-group-flush">
+                            <a
+                                href="{% url 'devis:gestion_commandes' %}?{% if statut_filtre %}statut={{ statut_filtre }}{% endif %}{% if statut_filtre and email_filtre %}&{% endif %}{% if email_filtre %}email={{ email_filtre|urlencode }}{% endif %}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if not client_filtre %}active{% endif %}"
+                            >
+                                <span>Tous les clients</span>
+                                <span class="badge {% if not client_filtre %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                                    {{ stats.total }}
+                                </span>
+                            </a>
+
+                            <a
+                                href="?client=inscrit{% if statut_filtre %}&statut={{ statut_filtre }}{% endif %}{% if email_filtre %}&email={{ email_filtre|urlencode }}{% endif %}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if client_filtre == 'inscrit' %}active{% endif %}"
+                            >
+                                <span>Client inscrit</span>
+                                <span class="badge {% if client_filtre == 'inscrit' %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                                    {{ stats.clients_inscrits }}
+                                </span>
+                            </a>
+
+                            <a
+                                href="?client=visiteur{% if statut_filtre %}&statut={{ statut_filtre }}{% endif %}{% if email_filtre %}&email={{ email_filtre|urlencode }}{% endif %}"
+                                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-2 py-2 rounded {% if client_filtre == 'visiteur' %}active{% endif %}"
+                            >
+                                <span>Visiteur</span>
+                                <span class="badge {% if client_filtre == 'visiteur' %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                                    {{ stats.visiteurs }}
+                                </span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -220,7 +318,7 @@
                                 href="{% url 'devis:gestion_commandes' %}"
                                 class="list-group-item list-group-item-action px-2 py-2 rounded active"
                             >
-                                <i class="fas fa-tasks me-2"></i> Commandes &amp; Devis
+                                <i class="fas fa-tasks me-2"></i> Commandes & Devis
                             </a>
                             <a
                                 href="{% url 'catalogue:admin_produits' %}"
