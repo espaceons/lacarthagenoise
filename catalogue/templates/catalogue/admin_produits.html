@@ -7,20 +7,20 @@
 {% block content %}
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
-      <h1 class="fw-bold mb-0">
-        <i class="fas fa-boxes me-2"></i>Gestion des Articles
+      <h1 class="fw-bold mb-0 titre-poterie">
+        <i class="fas fa-boxes me-2" style="color: var(--poterie-terracotta);"></i>Gestion des Articles
       </h1>
-      <p class="text-muted small mb-0">Ajoutez, modifiez, suivez les stocks ou gérez la disponibilité des produits.</p>
+      <p class="text-poterie-muted small mb-0">Ajoutez, modifiez, suivez les stocks ou gérez la disponibilité des produits.</p>
     </div>
 
     <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'catalogue:liste_catalogues_admin' %}" class="btn btn-outline-primary btn-sm">
+      <a href="{% url 'catalogue:liste_catalogues_admin' %}" class="btn btn-outline-bleu btn-sm">
         <i class="fas fa-book-open me-1"></i> Gérer les catalogues
       </a>
-      <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-dark btn-sm">
+      <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-bleu btn-sm">
         <i class="fas fa-tags me-1"></i> Gérer les catégories
       </a>
-      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary btn-sm">
+      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-olive btn-sm">
         <i class="fas fa-store me-1"></i> Voir la vitrine
       </a>
     </div>
@@ -29,10 +29,10 @@
   <div class="row g-4">
     <!-- Formulaire d'ajout rapide -->
     <div class="col-lg-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-dark text-white">
+      <div class="card shadow-sm card-poterie">
+        <div class="card-header card-header-poterie py-3">
           <h5 class="mb-0 fs-6 fw-bold">
-            <i class="fas fa-plus-circle me-1"></i> Nouveau produit
+            <i class="fas fa-plus-circle me-1" style="color: var(--poterie-argile);"></i> Nouveau produit
           </h5>
         </div>
         <div class="card-body">
@@ -81,7 +81,7 @@
                   {{ form.catalogues.label|default:"Catalogues" }}
                 </label>
                 {{ form.catalogues }}
-                <small class="text-muted d-block" style="font-size: 0.75rem;">
+                <small class="text-poterie-muted d-block" style="font-size: 0.75rem;">
                   Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs catalogues.
                 </small>
                 {% if form.catalogues.errors %}
@@ -161,7 +161,7 @@
               </label>
             </div>
 
-            <button type="submit" class="btn btn-success w-100">
+            <button type="submit" class="btn btn-poterie w-100 fw-semibold">
               <i class="fas fa-plus me-1"></i> Ajouter le produit
             </button>
           </form>
@@ -171,10 +171,10 @@
 
     <!-- Tableau des produits -->
     <div class="col-lg-8">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
-          <span class="fw-bold">
-            Liste des articles <span class="badge bg-dark ms-1">{{ produits|length }}</span>
+      <div class="card shadow-sm card-poterie">
+        <div class="card-header card-header-sable d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+          <span class="fw-bold titre-poterie">
+            Liste des articles <span class="badge badge-terracotta ms-1">{{ produits|length }}</span>
           </span>
           <input
             type="search"
@@ -188,12 +188,12 @@
 
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="tableProduits">
-              <thead class="table-light">
+            <table class="table table-hover table-poterie align-middle mb-0" id="tableProduits">
+              <thead>
                 <tr>
                   <th class="ps-3" style="width: 65px;">Image</th>
                   <th>Produit</th>
-                  <th>Catégorie &amp; Catalogues</th>
+                  <th>Catégorie & Catalogues</th>
                   <th>Prix</th>
                   <th>Stock</th>
                   <th>Détail par statut</th>
@@ -206,34 +206,34 @@
                   <tr class="produit-row">
                     <td class="ps-3">
                       {% if produit.image %}
-                        <img src="{{ produit.image.url }}" alt="{{ produit.nom }}" class="rounded border" style="width: 45px; height: 45px; object-fit: cover;">
+                        <img src="{{ produit.image.url }}" alt="{{ produit.nom }}" class="rounded" style="width: 45px; height: 45px; object-fit: cover; border: 1px solid var(--poterie-bordure);">
                       {% else %}
-                        <div class="rounded bg-light border d-flex align-items-center justify-content-center text-muted" style="width: 45px; height: 45px;">
+                        <div class="rounded d-flex align-items-center justify-content-center text-poterie-muted" style="width: 45px; height: 45px; background-color: var(--poterie-sable); border: 1px solid var(--poterie-bordure);">
                           <i class="fas fa-image"></i>
                         </div>
                       {% endif %}
                     </td>
                     <td class="produit-info">
                       <div class="fw-semibold">
-                        <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="text-decoration-none text-dark">
+                        <a href="{% url 'catalogue:detail_produit' pk=produit.pk %}" class="text-decoration-none titre-poterie">
                           {{ produit.nom }}
                         </a>
                       </div>
                       {% if produit.reference %}
-                        <small class="text-muted">Réf : <code>{{ produit.reference }}</code></small>
+                        <small class="text-poterie-muted">Réf : <code class="code-slug">{{ produit.reference }}</code></small>
                       {% endif %}
                     </td>
                     <td class="produit-classement">
                       {% if produit.categorie %}
-                        <span class="badge bg-light text-dark border">{{ produit.categorie.nom }}</span>
+                        <span class="badge" style="background-color: var(--poterie-sable); color: var(--poterie-texte); border: 1px solid var(--poterie-bordure);">{{ produit.categorie.nom }}</span>
                       {% else %}
-                        <span class="text-muted small">Sans catégorie</span>
+                        <span class="text-poterie-muted small">Sans catégorie</span>
                       {% endif %}
 
                       {% if produit.catalogues.all %}
                         <div class="mt-1 d-flex flex-wrap gap-1">
                           {% for cat_b in produit.catalogues.all %}
-                            <span class="badge bg-info text-dark" style="font-size: 0.7rem;">{{ cat_b.nom }}</span>
+                            <span class="badge badge-email-bleu" style="font-size: 0.7rem;">{{ cat_b.nom }}</span>
                           {% endfor %}
                         </div>
                       {% endif %}
@@ -242,28 +242,28 @@
                       {% if produit.prix %}
                         {{ produit.prix }} DT
                       {% else %}
-                        <span class="text-muted fw-normal">Sur devis</span>
+                        <span class="text-poterie-muted fw-normal">Sur devis</span>
                       {% endif %}
                     </td>
                     <td>
                       <div class="small text-nowrap">
                         <div>Total : <strong>{{ produit.quantite_totale|default:0 }}</strong></div>
-                        <div class="text-primary">Vendu : <strong>{{ produit.quantite_vendue|default:0 }}</strong></div>
-                        <div class="text-success">Restant : <strong>{{ produit.quantite_restante|default:0 }}</strong></div>
+                        <div style="color: var(--poterie-bleu);">Vendu : <strong>{{ produit.quantite_vendue|default:0 }}</strong></div>
+                        <div style="color: var(--poterie-olive);">Restant : <strong>{{ produit.quantite_restante|default:0 }}</strong></div>
                       </div>
                     </td>
                     <td>
                       <div class="d-flex flex-column gap-1 small">
-                        <span class="badge bg-warning text-dark text-start">
+                        <span class="badge text-start" style="background-color: rgba(201, 138, 99, 0.25); color: var(--poterie-texte);">
                           En attente : {{ produit.qte_attente|default:0 }}
                         </span>
-                        <span class="badge bg-info text-dark text-start">
+                        <span class="badge badge-email-bleu text-start">
                           Validé : {{ produit.qte_valide|default:0 }}
                         </span>
                         <span class="badge bg-secondary text-start">
                           En livraison : {{ produit.qte_livraison|default:0 }}
                         </span>
-                        <span class="badge bg-success text-start">
+                        <span class="badge badge-olive text-start">
                           Prêt / Livré : {{ produit.qte_termine|default:0 }}
                         </span>
                         <span class="badge bg-danger text-start">
@@ -288,7 +288,8 @@
                             onchange="this.form.submit()"
                           >
                           <label
-                            class="form-check-label small fw-semibold {% if produit.disponible %}text-success{% else %}text-danger{% endif %}"
+                            class="form-check-label small fw-semibold"
+                            style="color: {% if produit.disponible %}var(--poterie-olive){% else %}#dc3545{% endif %};"
                             for="dispo-{{ produit.id }}"
                           >
                             {% if produit.disponible %}Disponible{% else %}Indisponible{% endif %}
@@ -298,7 +299,7 @@
                     </td>
                     <td class="text-end pe-3 text-nowrap">
                       <a href="{% url 'catalogue:modifier_produit' produit.id %}"
-                         class="btn btn-sm btn-outline-primary"
+                         class="btn btn-sm btn-outline-bleu"
                          title="Modifier">
                         <i class="fas fa-edit"></i>
                       </a>
@@ -311,13 +312,13 @@
                   </tr>
                 {% empty %}
                   <tr id="emptyInitialRow">
-                    <td colspan="8" class="text-center py-4 text-muted">
+                    <td colspan="8" class="text-center py-4 text-poterie-muted">
                       Aucun produit enregistré dans le catalogue.
                     </td>
                   </tr>
                 {% endfor %}
                 <tr id="noFilterMatchRow" style="display: none;">
-                  <td colspan="8" class="text-center py-4 text-muted">
+                  <td colspan="8" class="text-center py-4 text-poterie-muted">
                     Aucun produit ne correspond à votre recherche.
                   </td>
                 </tr>

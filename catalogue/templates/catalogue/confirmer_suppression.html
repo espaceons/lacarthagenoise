@@ -5,18 +5,21 @@
 {% block content %}
 <div class="row justify-content-center my-5">
     <div class="col-md-6">
-        <div class="card shadow-sm border-0 text-center p-4">
+        <div class="card shadow-sm card-poterie text-center p-4">
             <div class="card-body">
-                <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
-                <h3 class="fw-bold mb-3">Confirmer la suppression</h3>
-                <p class="text-muted mb-4">
-                    Êtes-vous sûr de vouloir supprimer définitivement le produit <strong>"{{ produit.nom }}"</strong> ?
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                     style="width: 68px; height: 68px; background-color: rgba(201, 138, 99, 0.22); color: var(--poterie-terracotta);">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <h3 class="fw-bold mb-3 titre-poterie">Confirmer la suppression</h3>
+                <p class="text-poterie-muted mb-4">
+                    Êtes-vous sûr de vouloir supprimer définitivement le produit <strong class="titre-poterie">"{{ produit.nom }}"</strong> ?
                 </p>
 
                 <form method="post" class="d-flex justify-content-center gap-3">
                     {% csrf_token %}
-                    <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-secondary">Annuler</a>
-                    <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+                    <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-bleu">Annuler</a>
+                    <button type="submit" class="btn btn-danger fw-semibold">Oui, supprimer</button>
                 </form>
             </div>
         </div>

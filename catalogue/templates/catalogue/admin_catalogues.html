@@ -7,22 +7,22 @@
 {% block content %}
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <div>
-      <h1 class="fw-bold mb-0">
-        <i class="fas fa-book-open me-2"></i>Gestion des Catalogues
+      <h1 class="fw-bold mb-0 titre-poterie">
+        <i class="fas fa-book-open me-2" style="color: var(--poterie-terracotta);"></i>Gestion des Catalogues
       </h1>
-      <p class="text-muted small mb-0">
+      <p class="text-poterie-muted small mb-0">
         Créez, modifiez ou supprimez les catalogues et choisissez ceux visibles dans la vitrine.
       </p>
     </div>
 
     <div class="d-flex flex-wrap gap-2">
-      <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-dark btn-sm">
+      <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-bleu btn-sm">
         <i class="fas fa-boxes me-1"></i> Gérer les articles
       </a>
-      <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-secondary btn-sm">
+      <a href="{% url 'catalogue:liste_categories_admin' %}" class="btn btn-outline-bleu btn-sm">
         <i class="fas fa-tags me-1"></i> Gérer les catégories
       </a>
-      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-success btn-sm">
+      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-olive btn-sm">
         <i class="fas fa-store me-1"></i> Voir la vitrine
       </a>
     </div>
@@ -31,10 +31,10 @@
   <div class="row g-4">
     <!-- Formulaire d'ajout rapide -->
     <div class="col-lg-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-dark text-white">
+      <div class="card shadow-sm card-poterie">
+        <div class="card-header card-header-poterie py-3">
           <h5 class="mb-0 fs-6 fw-bold">
-            <i class="fas fa-plus-circle me-1"></i> Nouveau catalogue
+            <i class="fas fa-plus-circle me-1" style="color: var(--poterie-argile);"></i> Nouveau catalogue
           </h5>
         </div>
         <div class="card-body">
@@ -79,7 +79,7 @@
               {% endif %}
             </div>
 
-            <button type="submit" class="btn btn-success w-100">
+            <button type="submit" class="btn btn-poterie w-100 fw-semibold">
               <i class="fas fa-plus me-1"></i> Créer le catalogue
             </button>
           </form>
@@ -89,10 +89,10 @@
 
     <!-- Tableau des catalogues -->
     <div class="col-lg-8">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
-          <span class="fw-bold">
-            Liste des catalogues <span class="badge bg-dark ms-1">{{ catalogues|length }}</span>
+      <div class="card shadow-sm card-poterie">
+        <div class="card-header card-header-sable d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+          <span class="fw-bold titre-poterie">
+            Liste des catalogues <span class="badge badge-terracotta ms-1">{{ catalogues|length }}</span>
           </span>
           <input
             type="search"
@@ -106,8 +106,8 @@
 
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="tableCatalogues">
-              <thead class="table-light">
+            <table class="table table-hover table-poterie align-middle mb-0" id="tableCatalogues">
+              <thead>
                 <tr>
                   <th class="ps-3">Catalogue</th>
                   <th>Vitrine</th>
@@ -120,27 +120,27 @@
                   <tr class="catalogue-row">
                     <td class="ps-3 catalogue-info">
                       <a href="{% url 'catalogue:liste_par_catalogue' catalogue_slug=cat_b.slug %}"
-                         class="fw-semibold text-decoration-none text-dark">
+                         class="fw-semibold text-decoration-none titre-poterie">
                         {{ cat_b.nom }}
                       </a>
                       {% if cat_b.description %}
-                        <div class="text-muted small">{{ cat_b.description|truncatechars:90 }}</div>
+                        <div class="text-poterie-muted small">{{ cat_b.description|truncatechars:90 }}</div>
                       {% endif %}
-                      <small class="text-muted">Slug : <code>{{ cat_b.slug }}</code></small>
+                      <small class="text-poterie-muted">Slug : <code class="code-slug">{{ cat_b.slug }}</code></small>
                     </td>
                     <td>
                       {% if cat_b.actif %}
-                        <span class="badge bg-success">Visible</span>
+                        <span class="badge badge-olive">Visible</span>
                       {% else %}
                         <span class="badge bg-secondary">Masqué</span>
                       {% endif %}
                     </td>
                     <td class="text-center">
-                      <span class="badge bg-primary rounded-pill">{{ cat_b.nb_produits|default:0 }}</span>
+                      <span class="badge badge-bleu rounded-pill">{{ cat_b.nb_produits|default:0 }}</span>
                     </td>
                     <td class="text-end pe-3 text-nowrap">
                       <a href="{% url 'catalogue:modifier_catalogue' cat_b.id %}"
-                         class="btn btn-sm btn-outline-primary"
+                         class="btn btn-sm btn-outline-bleu"
                          title="Modifier">
                         <i class="fas fa-edit"></i>
                       </a>
@@ -153,13 +153,13 @@
                   </tr>
                 {% empty %}
                   <tr id="emptyInitialCatalogueRow">
-                    <td colspan="4" class="text-center py-4 text-muted">
+                    <td colspan="4" class="text-center py-4 text-poterie-muted">
                       Aucun catalogue enregistré pour le moment.
                     </td>
                   </tr>
                 {% endfor %}
                 <tr id="noCatalogueMatchRow" style="display: none;">
-                  <td colspan="4" class="text-center py-4 text-muted">
+                  <td colspan="4" class="text-center py-4 text-poterie-muted">
                     Aucun catalogue ne correspond à votre recherche.
                   </td>
                 </tr>

@@ -10,11 +10,14 @@
   .about-hero-badge {
     letter-spacing: 0.08em;
     font-size: 0.78rem;
+    background-color: var(--poterie-sable);
+    color: var(--poterie-terracotta-dark);
+    border: 1px solid var(--poterie-bordure);
   }
 
   .about-media-box {
-    background-color: #f4f6f8;
-    border: 1px solid rgba(15, 23, 42, 0.07);
+    background-color: var(--poterie-sable);
+    border: 1px solid var(--poterie-bordure);
   }
 
   .about-media-box img {
@@ -28,6 +31,11 @@
   .about-media-box:hover img {
     transform: scale(1.03);
   }
+
+  .about-divider {
+    border: 0;
+    border-top: 1px solid var(--poterie-bordure);
+  }
 </style>
 {% endblock %}
 
@@ -36,24 +44,24 @@
   <div class="col-lg-10">
     <!-- En-tête éditorial -->
     <div class="text-center mb-5">
-      <span class="badge bg-light text-dark border about-hero-badge text-uppercase px-3 py-2 mb-3">
-        La Carthagenoise • Moknine
+      <span class="badge about-hero-badge text-uppercase px-3 py-2 mb-3">
+        La Carthagenoise &bull; Moknine
       </span>
-      <h1 class="display-5 fw-bold mb-3">
+      <h1 class="display-5 fw-bold titre-poterie mb-3">
         L'Âme de la Terre Cuite : Notre Histoire
       </h1>
-      <p class="lead text-muted mx-auto" style="max-width: 780px;">
+      <p class="lead text-poterie-muted mx-auto" style="max-width: 780px;">
         La Carthagenoise est née de la passion pour l'artisanat tunisien, ancrée dans la tradition séculaire de la ville de Moknine. Chaque pièce que nous créons raconte une histoire, celle de la terre rouge, du soleil et du savoir-faire transmis de génération en génération.
       </p>
     </div>
 
-    <hr class="my-5" />
+    <hr class="about-divider my-5" />
 
     <!-- Section 1 : Savoir-faire -->
     <div class="row featurette align-items-center g-4 mb-5">
       <div class="col-md-7 order-md-2">
-        <h2 class="h3 fw-bold mb-3">Un Savoir-Faire Authentique.</h2>
-        <p class="lead text-muted mb-0">
+        <h2 class="h3 fw-bold titre-poterie mb-3">Un Savoir-Faire Authentique.</h2>
+        <p class="lead text-poterie-muted mb-0">
           Nos maîtres potiers perpétuent des techniques ancestrales tout en y insufflant une touche de modernité. Du tournage à la cuisson au four traditionnel, nous garantissons l'authenticité et la qualité exceptionnelle de chaque jarre, pot et luminaire.
         </p>
       </div>
@@ -63,19 +71,19 @@
             src="{% static 'images/poterie_traditionnelle.jpg' %}"
             alt="Image d'un potier au travail"
             loading="lazy"
-            onerror="this.closest('.about-media-box').innerHTML='<div class=\'d-flex flex-column align-items-center justify-content-center h-100 text-muted p-3 text-center\'><i class=\'fas fa-image fa-2x mb-2\'></i><span class=\'small\'>Image indisponible : static/images/poterie_traditionnelle.jpg</span></div>';"
+            onerror="this.closest('.about-media-box').innerHTML='<div class=\'d-flex flex-column align-items-center justify-content-center h-100 p-3 text-center\' style=\'color: var(--poterie-texte-muted);\'><i class=\'fas fa-image fa-2x mb-2\' style=\'color: var(--poterie-argile);\'></i><span class=\'small\'>Image indisponible : static/images/poterie_traditionnelle.jpg</span></div>';"
           />
         </div>
       </div>
     </div>
 
-    <hr class="my-5" />
+    <hr class="about-divider my-5" />
 
     <!-- Section 2 : Moknine -->
     <div class="row featurette align-items-center g-4">
       <div class="col-md-7">
-        <h2 class="h3 fw-bold mb-3">Moknine : Notre Racine.</h2>
-        <p class="lead text-muted mb-0">
+        <h2 class="h3 fw-bold titre-poterie mb-3">Moknine : Notre Racine.</h2>
+        <p class="lead text-poterie-muted mb-0">
           Notre atelier est situé au cœur de Moknine, une région célèbre pour la richesse de son argile. Nous nous engageons à utiliser des matériaux locaux et à soutenir l'économie artisanale de notre communauté.
         </p>
       </div>
@@ -85,7 +93,7 @@
             src="{% static 'images/atelier_moknine.jpg' %}"
             alt="Vue de l'atelier de poterie"
             loading="lazy"
-            onerror="this.closest('.about-media-box').innerHTML='<div class=\'d-flex flex-column align-items-center justify-content-center h-100 text-muted p-3 text-center\'><i class=\'fas fa-image fa-2x mb-2\'></i><span class=\'small\'>Image indisponible : static/images/atelier_moknine.jpg</span></div>';"
+            onerror="this.closest('.about-media-box').innerHTML='<div class=\'d-flex flex-column align-items-center justify-content-center h-100 p-3 text-center\' style=\'color: var(--poterie-texte-muted);\'><i class=\'fas fa-image fa-2x mb-2\' style=\'color: var(--poterie-argile);\'></i><span class=\'small\'>Image indisponible : static/images/atelier_moknine.jpg</span></div>';"
           />
         </div>
       </div>

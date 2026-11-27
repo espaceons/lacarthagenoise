@@ -5,76 +5,90 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 offset-lg-2">
-        <h1 class="text-center mb-4">Finaliser votre Demande de Devis</h1>
-        <p class="lead text-center mb-5">
-            Veuillez remplir vos coordonnées ci-dessous afin que notre atelier puisse traiter votre demande et vous recontacter rapidement.
-        </p>
+<div class="row justify-content-center my-4">
+    <div class="col-lg-8">
+        <div class="text-center mb-4">
+            <h1 class="h2 fw-bold titre-poterie mb-2">Finaliser votre Demande de Devis</h1>
+            <p class="text-poterie-muted mb-0">
+                Veuillez remplir vos coordonnées ci-dessous afin que notre atelier puisse traiter votre demande et vous recontacter rapidement.
+            </p>
+        </div>
 
-        <!-- Formulaire de soumission -->
-        <form method="post" class="card shadow-sm p-4 bg-light">
-            {% csrf_token %}
-            
-            <!-- Affichage des erreurs globales du formulaire si existantes -->
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger" role="alert">
-                    {% for error in form.non_field_errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <!-- Si vous utilisez un formulaire Django (DevisForm) -->
-            {% if form %}
-                {% for field in form %}
-                    <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="text-danger small mt-1">
-                                {% for error in field.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        {% if field.help_text %}
-                            <div class="form-text text-muted">{{ field.help_text }}</div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            {% else %}
-                <!-- Formulaire HTML statique de secours si le formulaire Django n'est pas encore créé -->
-                <div class="mb-3">
-                    <label for="nom_client" class="form-label fw-bold">Nom et Prénom / Raison sociale</label>
-                    <input type="text" class="form-control" id="nom_client" name="nom_client" required placeholder="Votre nom ou nom de votre entreprise">
-                </div>
-
-                <div class="mb-3">
-                    <label for="email_client" class="form-label fw-bold">Adresse Email</label>
-                    <input type="email" class="form-control" id="email_client" name="email_client" required placeholder="votre.email@example.com">
-                </div>
-
-                <div class="mb-3">
-                    <label for="telephone_client" class="form-label fw-bold">Numéro de Téléphone</label>
-                    <input type="tel" class="form-control" id="telephone_client" name="telephone_client" required placeholder="+216 XX XXX XXX">
-                </div>
-
-                <div class="mb-3">
-                    <label for="adresse_chantier" class="form-label fw-bold">Adresse de Livraison / Remarques</label>
-                    <textarea class="form-control" id="adresse_chantier" name="adresse_chantier" rows="3" placeholder="Précisez votre ville, vos besoins spécifiques ou instructions particulières..."></textarea>
-                </div>
-            {% endif %}
-
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <a href="{% url 'devis:view_devis' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left"></i> Retour au panier
-                </a>
-                <button type="submit" class="btn btn-success btn-lg px-5">
-                    <i class="fas fa-check-circle"></i> Envoyer la Demande
-                </button>
+        <!-- Carte & Formulaire de soumission -->
+        <div class="card card-poterie shadow-sm">
+            <div class="card-header card-header-poterie py-3">
+                <h2 class="h6 fw-bold mb-0">
+                    <i class="fas fa-file-signature me-2" style="color: var(--poterie-argile);"></i>Coordonnées &amp; Détails de la demande
+                </h2>
             </div>
-        </form>
+
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Affichage des erreurs globales du formulaire si existantes -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger py-2 small" role="alert">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Si vous utilisez un formulaire Django (DevisForm) -->
+                    {% if form %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold titre-poterie">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in field.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <div class="form-text text-poterie-muted small">{{ field.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Formulaire HTML statique de secours si le formulaire Django n'est pas encore créé -->
+                        <div class="mb-3">
+                            <label for="nom_client" class="form-label fw-bold titre-poterie">Nom et Prénom / Raison sociale</label>
+                            <input type="text" class="form-control" id="nom_client" name="nom_client" required placeholder="Votre nom ou nom de votre entreprise">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email_client" class="form-label fw-bold titre-poterie">Adresse Email</label>
+                            <input type="email" class="form-control" id="email_client" name="email_client" required placeholder="votre.email@example.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telephone_client" class="form-label fw-bold titre-poterie">Numéro de Téléphone</label>
+                            <input type="tel" class="form-control" id="telephone_client" name="telephone_client" required placeholder="+216 XX XXX XXX">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="adresse_chantier" class="form-label fw-bold titre-poterie">Adresse de Livraison / Remarques</label>
+                            <textarea class="form-control" id="adresse_chantier" name="adresse_chantier" rows="3" placeholder="Précisez votre ville, vos besoins spécifiques ou instructions particulières..."></textarea>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-4 pt-3" style="border-top: 1px solid var(--poterie-bordure);">
+                        <a href="{% url 'devis:view_devis' %}" class="btn btn-outline-bleu">
+                            <i class="fas fa-arrow-left me-1"></i> Retour au panier
+                        </a>
+                        <button type="submit" class="btn btn-poterie fw-semibold px-4">
+                            <i class="fas fa-check-circle me-1"></i> Envoyer la Demande
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

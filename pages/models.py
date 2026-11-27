@@ -1,9 +1,6 @@
 from django.db import models
 
 
-from django.db import models
-
-
 class MessageContact(models.Model):
     nom = models.CharField("Nom complet", max_length=120)
     email = models.EmailField("Adresse email")
@@ -14,7 +11,8 @@ class MessageContact(models.Model):
     repondu = models.BooleanField("Répondu", default=False)
     reponse = models.TextField("Réponse envoyée", blank=True)
     date_reponse = models.DateTimeField(
-        "Date de réponse", null=True, blank=True)
+        "Date de réponse", null=True, blank=True
+    )
     date_envoi = models.DateTimeField("Date d'envoi", auto_now_add=True)
 
     class Meta:

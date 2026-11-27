@@ -1,0 +1,319 @@
+:root {
+  /* Couleurs principales (terre cuite & argile) */
+  --poterie-terracotta: #B85D3B;
+  --poterie-terracotta-dark: #94462A;
+  --poterie-argile: #C98A63;
+  --poterie-sable: #EFE7DC;
+  --poterie-creme: #FAF7F2;
+
+  /* Couleurs d'accent (émail & céramique) */
+  --poterie-bleu: #1E4E68;
+  --poterie-bleu-clair: #E3EFF5;
+  --poterie-olive: #5E6B4C;
+
+  /* Textes, surfaces et bordures */
+  --poterie-texte: #2B2420;
+  --poterie-texte-muted: #6E6259;
+  --poterie-bordure: #E2D8CA;
+  --poterie-blanc: #FFFFFF;
+
+  /* Harmonisation Bootstrap 5.3 */
+  --bs-body-bg: var(--poterie-creme);
+  --bs-body-color: var(--poterie-texte);
+  --bs-border-color: var(--poterie-bordure);
+  --bs-primary: var(--poterie-terracotta);
+  --bs-primary-rgb: 184, 93, 59;
+  --bs-link-color: var(--poterie-bleu);
+  --bs-link-hover-color: var(--poterie-terracotta-dark);
+}
+
+body {
+  background-color: var(--poterie-creme);
+  color: var(--poterie-texte);
+}
+
+.card,
+.carte-poterie {
+  background-color: var(--poterie-blanc);
+  border-color: var(--poterie-bordure);
+}
+
+.carte-poterie {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.75rem;
+}
+
+.carte-poterie .zone-visuelle {
+  background-color: var(--poterie-sable);
+}
+
+.btn-primary,
+.btn-poterie {
+  --bs-btn-bg: var(--poterie-terracotta);
+  --bs-btn-border-color: var(--poterie-terracotta);
+  --bs-btn-hover-bg: var(--poterie-terracotta-dark);
+  --bs-btn-hover-border-color: var(--poterie-terracotta-dark);
+  --bs-btn-active-bg: var(--poterie-terracotta-dark);
+  --bs-btn-active-border-color: var(--poterie-terracotta-dark);
+  --bs-btn-color: var(--poterie-blanc);
+  --bs-btn-hover-color: var(--poterie-blanc);
+  --bs-btn-active-color: var(--poterie-blanc);
+}
+
+.badge-email-bleu {
+  background-color: var(--poterie-bleu-clair);
+  color: var(--poterie-bleu);
+}
+
+.badge-gres-olive {
+  background-color: rgba(94, 107, 76, 0.14);
+  color: var(--poterie-olive);
+}
+
+.text-poterie-muted {
+  color: var(--poterie-texte-muted);
+}
+
+/* =========================================
+   NAVBAR & FOOTER — STYLE POTERIE
+   ========================================= */
+.navbar.navbar-poterie {
+  background-color: var(--poterie-bleu) !important;
+  --bs-navbar-color: rgba(250, 247, 242, 0.92);
+  --bs-navbar-hover-color: var(--poterie-argile);
+  --bs-navbar-brand-color: var(--poterie-creme);
+  --bs-navbar-brand-hover-color: var(--poterie-creme);
+  border-bottom: 3px solid var(--poterie-terracotta);
+}
+
+.navbar.navbar-poterie .navbar-brand,
+.navbar.navbar-poterie .navbar-brand:hover,
+.navbar.navbar-poterie .navbar-brand:focus {
+  color: var(--poterie-creme) !important;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.navbar.navbar-poterie .nav-link,
+.navbar.navbar-poterie .btn-user-poterie {
+  color: rgba(250, 247, 242, 0.9) !important;
+  font-weight: 500;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.navbar.navbar-poterie .nav-link:hover,
+.navbar.navbar-poterie .nav-link:focus,
+.navbar.navbar-poterie .nav-link.show,
+.navbar.navbar-poterie .btn-user-poterie:hover,
+.navbar.navbar-poterie .btn-user-poterie:focus,
+.navbar.navbar-poterie .btn-user-poterie.show {
+  color: var(--poterie-argile) !important;
+}
+
+/* Bouton Liste de Devis */
+.navbar.navbar-poterie .btn-devis-poterie,
+.navbar.navbar-poterie .btn-devis-poterie:visited {
+  color: var(--poterie-creme) !important;
+  border: 1px solid rgba(250, 247, 242, 0.7) !important;
+  background-color: rgba(250, 247, 242, 0.06) !important;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.navbar.navbar-poterie .btn-devis-poterie:hover,
+.navbar.navbar-poterie .btn-devis-poterie:focus {
+  background-color: var(--poterie-terracotta) !important;
+  border-color: var(--poterie-terracotta) !important;
+  color: var(--poterie-blanc) !important;
+}
+
+/* Badges terracotta et terre cuite */
+.badge-terracotta {
+  background-color: var(--poterie-terracotta);
+  color: var(--poterie-blanc);
+}
+
+/* Menu déroulant administration & utilisateur */
+.navbar.navbar-poterie .dropdown-menu {
+  background-color: var(--poterie-blanc);
+  border: 1px solid var(--poterie-bordure);
+  border-radius: 0.65rem;
+  box-shadow: 0 8px 22px rgba(43, 36, 32, 0.14);
+}
+
+.navbar.navbar-poterie .dropdown-item {
+  color: var(--poterie-texte);
+  padding: 0.45rem 1rem;
+}
+
+.navbar.navbar-poterie .dropdown-item:hover,
+.navbar.navbar-poterie .dropdown-item:focus {
+  background-color: var(--poterie-sable);
+  color: var(--poterie-terracotta-dark);
+}
+
+/* Couleurs lisibles des liens staff dans le menu déroulant */
+.navbar.navbar-poterie .staff-commandes {
+  color: var(--poterie-bleu);
+}
+
+.navbar.navbar-poterie .staff-articles {
+  color: var(--poterie-olive);
+}
+
+.navbar.navbar-poterie .staff-utilisateurs {
+  color: var(--poterie-terracotta-dark);
+}
+
+.navbar.navbar-poterie .staff-inbox {
+  color: var(--poterie-texte);
+}
+
+/* Pied de page */
+.footer-poterie {
+  background-color: var(--poterie-bleu);
+  color: rgba(250, 247, 242, 0.88);
+  border-top: 3px solid var(--poterie-argile);
+}
+
+/* =========================================
+   COMPOSANTS ADMIN & TABLEAUX — POTERIE
+   ========================================= */
+.titre-poterie {
+  color: var(--poterie-bleu);
+}
+
+.card-poterie {
+  background-color: var(--poterie-blanc);
+  border: 1px solid var(--poterie-bordure) !important;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.card-header-poterie {
+  background-color: var(--poterie-bleu) !important;
+  color: var(--poterie-creme) !important;
+  border-bottom: 3px solid var(--poterie-terracotta);
+}
+
+.card-header-sable {
+  background-color: var(--poterie-sable) !important;
+  color: var(--poterie-texte) !important;
+  border-bottom: 1px solid var(--poterie-bordure);
+}
+
+.table-poterie thead {
+  background-color: var(--poterie-sable);
+  color: var(--poterie-bleu);
+}
+
+.table-poterie thead th {
+  border-bottom: 2px solid var(--poterie-bordure);
+  font-weight: 600;
+}
+
+.table-poterie tbody tr:hover {
+  background-color: rgba(239, 231, 220, 0.45);
+}
+
+/* Boutons d'action secondaires */
+.btn-outline-bleu {
+  color: var(--poterie-bleu);
+  border-color: var(--poterie-bleu);
+  background-color: transparent;
+}
+
+.btn-outline-bleu:hover,
+.btn-outline-bleu:focus {
+  background-color: var(--poterie-bleu);
+  border-color: var(--poterie-bleu);
+  color: var(--poterie-blanc);
+}
+
+.btn-olive {
+  background-color: var(--poterie-olive);
+  border-color: var(--poterie-olive);
+  color: var(--poterie-blanc);
+}
+
+.btn-olive:hover,
+.btn-olive:focus {
+  background-color: #4B563C;
+  border-color: #4B563C;
+  color: var(--poterie-blanc);
+}
+
+.badge-bleu {
+  background-color: var(--poterie-bleu);
+  color: var(--poterie-blanc);
+}
+
+.badge-olive {
+  background-color: var(--poterie-olive);
+  color: var(--poterie-blanc);
+}
+
+.code-slug {
+  color: var(--poterie-terracotta-dark);
+  background-color: var(--poterie-sable);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+/* =========================================
+   VITRINE & CARTES PRODUITS — POTERIE
+   ========================================= */
+.product-card {
+  background-color: var(--poterie-blanc);
+  border: 1px solid var(--poterie-bordure) !important;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.75rem 1.5rem rgba(43, 36, 32, 0.1) !important;
+}
+
+.product-media {
+  background-color: var(--poterie-sable);
+  border-bottom: 1px solid var(--poterie-bordure);
+}
+
+.product-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.35s ease;
+}
+
+.product-card:hover .product-media img {
+  transform: scale(1.04);
+}
+
+.product-placeholder {
+  background: linear-gradient(135deg, var(--poterie-creme) 0%, var(--poterie-sable) 100%);
+  color: var(--poterie-texte-muted);
+}
+
+/* Filtres latéraux vitrine */
+.filtre-liste-poterie .list-group-item {
+  background-color: transparent;
+  color: var(--poterie-texte);
+  border: 0;
+  margin-bottom: 2px;
+}
+
+.filtre-liste-poterie .list-group-item:hover {
+  background-color: var(--poterie-sable);
+  color: var(--poterie-terracotta-dark);
+}
+
+.filtre-liste-poterie .list-group-item.active {
+  background-color: var(--poterie-bleu);
+  color: var(--poterie-creme);
+  font-weight: 600;
+}

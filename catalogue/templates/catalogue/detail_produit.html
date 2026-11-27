@@ -1,48 +1,88 @@
-{% extends 'base.html' %} {% block title %}
+{% extends 'base.html' %}
+
+{% block title %}
   {{ produit.nom }} - Détail Produit
-{% endblock %} {% block content %}
+{% endblock %}
+
+{% block content %}
   <div class="row">
     <div class="col-lg-12">
-      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-sm btn-outline-secondary mb-4"><i class="fas fa-arrow-left"></i> Retour au catalogue</a>
+      <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-sm btn-outline-bleu mb-4">
+        <i class="fas fa-arrow-left me-1"></i> Retour au catalogue
+      </a>
     </div>
   </div>
 
-  <div class="row">
+  <div class="row g-4 align-items-start">
     <div class="col-md-6 mb-4">
-      {% if produit.image %}
-        <img src="{{ produit.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ produit.nom }}" />
-      {% else %}
-        <div class="bg-light p-5 text-center border rounded">Image non disponible</div>
-      {% endif %}
-    </div>
-
-    <div class="col-md-6 mb-4">
-      <h1 class="mb-3">{{ produit.nom }}</h1>
-      <p class="lead text-muted">
-        Catégorie :
-        <span class="badge badge-info">{{ produit.categorie.nom }}</span>
-      </p>
-      <p class="h5 mb-4">Référence : **{{ produit.reference }}**</p>
-
-      <hr />
-
-      <h2>Description</h2>
-      <div class="mb-4">
-        <p>{{ produit.description|linebreaks }}</p>
+      <div class="card shadow-sm card-poterie p-2">
+        {% if produit.image %}
+          <img src="{{ produit.image.url }}" class="img-fluid rounded w-100" style="max-height: 460px; object-fit: cover;" alt="{{ produit.nom }}" />
+        {% else %}
+          <div class="zone-visuelle p-5 text-center rounded text-poterie-muted" style="min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <i class="fas fa-image fa-2x mb-2" style="color: var(--poterie-argile);"></i>
+            <span>Image non disponible</span>
+          </div>
+        {% endif %}
       </div>
+    </div>
 
-      {% if produit.disponible %}
-        <a href="{% url 'devis:add_to_devis' produit_id=produit.pk %}" class="btn btn-success btn-lg btn-block shadow-lg"><i class="fas fa-cart-plus"></i> Ajouter à la Liste de Devis</a>
-        <small class="form-text text-muted mt-2">Ceci est une demande de devis, non une commande ferme.</small>
-      {% else %}
-        <div class="alert alert-warning text-center">Ce produit est temporairement indisponible.</div>
-      {% endif %}
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm card-poterie p-4">
+        <h1 class="mb-3 fw-bold titre-poterie">{{ produit.nom }}</h1>
+
+        <p class="lead text-poterie-muted mb-2">
+          Catégorie :
+          {% if produit.categorie %}
+            <span class="badge badge-email-bleu">{{ produit.categorie.nom }}</span>
+          {% else %}
+            <span class="badge bg-secondary">Non classé</span>
+          {% endif %}
+        </p>
+
+        {% if produit.reference %}
+          <p class="h6 mb-3 text-poterie-muted">
+            Référence : <code class="code-slug fs-6">{{ produit.reference }}</code>
+          </p>
+        {% endif %}
+
+        {% if produit.prix %}
+          <p class="h4 fw-bold mb-3" style="color: var(--poterie-terracotta);">
+            {{ produit.prix }} DT
+          </p>
+        {% endif %}
+
+        <hr style="border-color: var(--poterie-bordure);" />
+
+        <h2 class="h5 fw-bold titre-poterie mt-3">Description</h2>
+        <div class="mb-4 text-poterie-muted">
+          {% if produit.description %}
+            {{ produit.description|linebreaks }}
+          {% else %}
+            <p class="fst-italic mb-0">Aucune description détaillée pour cet article.</p>
+          {% endif %}
+        </div>
+
+        {% if produit.disponible %}
+          <a href="{% url 'devis:add_to_devis' produit_id=produit.pk %}" class="btn btn-poterie btn-lg w-100 shadow-sm fw-semibold">
+            <i class="fas fa-cart-plus me-2"></i> Ajouter à la Liste de Devis
+          </a>
+          <small class="form-text text-poterie-muted d-block text-center mt-2">
+            Ceci est une demande de devis, non une commande ferme.
+          </small>
+        {% else %}
+          <div class="alert text-center mb-0" style="background-color: rgba(201, 138, 99, 0.22); color: var(--poterie-texte); border: 1px solid var(--poterie-argile);">
+            <i class="fas fa-info-circle me-1" style="color: var(--poterie-terracotta);"></i>
+            Ce produit est temporairement indisponible.
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 
-  <div class="row mt-5">
+  <div class="row mt-4">
     <div class="col-12">
-      <h3 class="mb-4">Produits Similaires</h3>
+      <h3 class="mb-3 fw-bold titre-poterie">Produits Similaires</h3>
     </div>
   </div>
 {% endblock %}

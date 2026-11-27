@@ -4,66 +4,74 @@
 
 {% block content %}
 <div class="row justify-content-center my-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <h2 class="fw-bold mb-4">{{ titre }}</h2>
+  <div class="col-md-10 col-lg-8">
+    <div class="card shadow-sm card-poterie">
+      <div class="card-header card-header-poterie d-flex justify-content-between align-items-center py-3">
+        <h2 class="fw-bold fs-5 mb-0">
+          <i class="fas fa-box-open me-2" style="color: var(--poterie-argile);"></i>{{ titre }}
+        </h2>
+        <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-sm"
+           style="background-color: rgba(250, 247, 242, 0.14); color: var(--poterie-creme); border: 1px solid rgba(250, 247, 242, 0.45);">
+          <i class="fas fa-arrow-left me-1"></i> Retour
+        </a>
+      </div>
 
-                <form method="post" enctype="multipart/form-data" novalidate>
-                    {% csrf_token %}
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger py-2 small">
-                            {% for error in form.non_field_errors %}
-                                <div>{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    {% for field in form %}
-                        <div class="mb-3">
-                            {% if field.field.widget.input_type == 'checkbox' and field.name == 'disponible' %}
-                                <div class="form-check form-switch">
-                                    {{ field }}
-                                    <label for="{{ field.id_for_label }}" class="form-check-label fw-bold">
-                                        {{ field.label }}
-                                    </label>
-                                </div>
-                            {% else %}
-                                <label for="{{ field.id_for_label }}" class="form-label fw-bold">
-                                    {{ field.label }}
-                                </label>
-                                {{ field }}
-                                {% if field.name == 'catalogues' and not field.help_text %}
-                                    <div class="form-text text-muted small">
-                                        Maintenez Ctrl (ou Cmd) pour sélectionner un ou plusieurs catalogues.
-                                    </div>
-                                {% endif %}
-                            {% endif %}
-
-                            {% if field.errors %}
-                                <div class="text-danger small mt-1">
-                                    {% for error in field.errors %}{{ error }}{% endfor %}
-                                </div>
-                            {% endif %}
-
-                            {% if field.help_text %}
-                                <div class="form-text text-muted small">{{ field.help_text }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left"></i> Retour
-                        </a>
-                        <button type="submit" class="btn btn-dark">
-                            <i class="fas fa-save"></i> Enregistrer
-                        </button>
-                    </div>
-                </form>
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small">
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
             </div>
-        </div>
+          {% endif %}
+
+          {% for field in form %}
+            <div class="mb-3">
+              {% if field.field.widget.input_type == 'checkbox' and field.name == 'disponible' %}
+                <div class="form-check form-switch">
+                  {{ field }}
+                  <label for="{{ field.id_for_label }}" class="form-check-label fw-bold titre-poterie">
+                    {{ field.label }}
+                  </label>
+                </div>
+              {% else %}
+                <label for="{{ field.id_for_label }}" class="form-label fw-bold titre-poterie">
+                  {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.name == 'catalogues' and not field.help_text %}
+                  <div class="form-text text-poterie-muted small">
+                    Maintenez Ctrl (ou Cmd) pour sélectionner un ou plusieurs catalogues.
+                  </div>
+                {% endif %}
+              {% endif %}
+
+              {% if field.errors %}
+                <div class="text-danger small mt-1">
+                  {% for error in field.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+
+              {% if field.help_text %}
+                <div class="form-text text-poterie-muted small">{{ field.help_text }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          <div class="d-flex justify-content-between mt-4 pt-3" style="border-top: 1px solid var(--poterie-bordure);">
+            <a href="{% url 'catalogue:admin_produits' %}" class="btn btn-outline-bleu">
+              <i class="fas fa-arrow-left me-1"></i> Retour
+            </a>
+            <button type="submit" class="btn btn-poterie fw-semibold">
+              <i class="fas fa-save me-1"></i> Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

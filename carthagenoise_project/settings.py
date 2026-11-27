@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-jyzqmvo^!46okx0ixl40d2deidli5vpzy%u-!m8zxwoz22)b3a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['jemaasamir.pythonanywhere.com',
+                 '127.0.0.1', 'localhost', '*']
 
 
 # Application definition
@@ -74,7 +75,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                'django.contrib.messages.context_processors.messages', 'pages.context_processors.messages_contact_context'
             ],
         },
     },
@@ -136,8 +137,7 @@ USE_TZ = True
 
 # 1. STATIC_URL: URL utilisée pour les fichiers statiques (CSS, JS, etc.)
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 
 # 3. STATIC_ROOT: L'endroit où Django va COLLECTER tous les fichiers statiques pour le déploiement
 # Ce dossier doit être créé, mais restera vide en développement.

@@ -6,58 +6,128 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="col-lg-10 offset-lg-1">
-      <h1 class="text-center mb-5">Votre Sélection pour Demande de Devis</h1>
+  <div class="row justify-content-center my-4">
+    <div class="col-lg-10">
+      <div class="text-center mb-4">
+        <h1 class="h2 fw-bold titre-poterie mb-1">Votre Sélection pour Demande de Devis</h1>
+        <p class="text-poterie-muted small mb-0">
+          Vérifiez vos articles sélectionnés et leurs quantités avant d'envoyer votre demande à l'atelier.
+        </p>
+      </div>
 
       {# On vérifie la nouvelle variable passée par la vue #}
       {% if devis_items %}
-        <table class="table table-bordered table-striped align-middle">
-          <thead class="thead-dark">
-            <tr>
-              <th scope="col" style="width: 80px;"></th>
-              <th scope="col">Nom du Produit</th>
-              <th scope="col">Catégorie</th>
-              <th scope="col" style="width: 15%;">Quantité</th>
-              <th scope="col" style="width: 15%;">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {# On itère sur la liste sécurisée d'objets complets #}
-            {% for item in devis_items %}
-              <tr>
-                <td>
-                  {# Accès direct à l'objet produit pour l'image #}
-                  {% if item.produit.image %}
-                    <img src="{{ item.produit.image.url }}" alt="{{ item.produit.nom }}" class="img-fluid rounded" style="max-height: 50px;" />
-                  {% endif %}
-                </td>
-                <td>
-                  <a href="{% url 'catalogue:detail_produit' pk=item.produit.pk %}" class="fw-bold">{{ item.produit.nom }}</a>
-                  <br /><small class="text-muted">Réf: {{ item.produit.reference }}</small>
-                </td>
-                <td>{{ item.produit.categorie.nom }}</td>
-                <td>{{ item.quantite }}</td>
-                <td>
-                  {# Le lien Retirer est maintenant correct et utilise le namespace 'devis' #}
-                  <a href="{% url 'devis:remove_from_devis' produit_id=item.produit.pk %}" class="btn btn-sm btn-danger" title="Réduire la quantité ou retirer"><i class="fas fa-minus-circle"></i> Retirer</a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="card card-poterie shadow-sm">
+          <div class="card-header card-header-poterie d-flex justify-content-between align-items-center py-3">
+            <h2 class="h6 fw-bold mb-0">
+              <i class="fas fa-clipboard-list me-2" style="color: var(--poterie-argile);"></i>Articles sélectionnés
+            </h2>
+            <span class="badge badge-terracotta rounded-pill">{% devis_count %} article(s)</span>
+          </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-4">
-          <a href="{% url 'devis:clear_devis' %}" class="btn btn-sm btn-outline-warning">Vider la liste</a>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover table-poterie align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col" style="width: 84px;">Aperçu</th>
+                    <th scope="col">Nom du Produit</th>
+                    <th scope="col">Catégorie</th>
+                    <th scope="col" class="text-center" style="width: 15%;">Quantité</th>
+                    <th scope="col" class="text-end" style="width: 18%;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {# On itère sur la liste sécurisée d'objets complets #}
+                  {% for item in devis_items %}
+                    <tr>
+                      <td>
+                        {# Accès direct à l'objet produit pour l'image #}
+                        {% if item.produit.image %}
+                          <img
+                            src="{{ item.produit.image.url }}"
+                            alt="{{ item.produit.nom }}"
+                            class="img-fluid rounded"
+                            style="max-height: 52px; width: 64px; object-fit: cover; border: 1px solid var(--poterie-bordure);"
+                          />
+                        {% else %}
+                          <div
+                            class="d-flex align-items-center justify-content-center rounded"
+                            style="width: 64px; height: 52px; background-color: var(--poterie-sable); border: 1px solid var(--poterie-bordure); color: var(--poterie-argile);"
+                          >
+                            <i class="fas fa-image"></i>
+                          </div>
+                        {% endif %}
+                      </td>
+                      <td>
+                        <a
+                          href="{% url 'catalogue:detail_produit' pk=item.produit.pk %}"
+                          class="fw-bold text-decoration-none titre-poterie"
+                        >
+                          {{ item.produit.nom }}
+                        </a>
+                        <br />
+                        <small class="text-poterie-muted">Réf: <code class="code-slug">{{ item.produit.reference }}</code></small>
+                      </td>
+                      <td>
+                        {% if item.produit.categorie %}
+                          <span class="badge badge-email-bleu">{{ item.produit.categorie.nom }}</span>
+                        {% else %}
+                          <span class="text-poterie-muted small">—</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-center">
+                        <span class="badge rounded-pill px-3 py-2" style="background-color: var(--poterie-sable); color: var(--poterie-texte); border: 1px solid var(--poterie-bordure);">
+                          {{ item.quantite }}
+                        </span>
+                      </td>
+                      <td class="text-end">
+                        {# Le lien Retirer est maintenant correct et utilise le namespace 'devis' #}
+                        <a
+                          href="{% url 'devis:remove_from_devis' produit_id=item.produit.pk %}"
+                          class="btn btn-sm btn-outline-danger"
+                          title="Réduire la quantité ou retirer"
+                        >
+                          <i class="fas fa-minus-circle me-1"></i> Retirer
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+          <a
+            href="{% url 'devis:clear_devis' %}"
+            class="btn btn-sm"
+            style="background-color: var(--poterie-sable); color: var(--poterie-terracotta-dark); border: 1px solid var(--poterie-argile);"
+          >
+            <i class="fas fa-trash-alt me-1"></i> Vider la liste
+          </a>
 
           {# Utilisation de la balise simple pour le décompte total #}
-          <a href="{% url 'devis:submit_devis' %}" class="btn btn-lg btn-success shadow"><i class="fas fa-paper-plane"></i> Soumettre la Demande de Devis ({% devis_count %}articles)</a>
+          <a href="{% url 'devis:submit_devis' %}" class="btn btn-poterie fw-semibold px-4 py-2 shadow-sm">
+            <i class="fas fa-paper-plane me-1"></i> Soumettre la Demande de Devis ({% devis_count %} articles)
+          </a>
         </div>
       {% else %}
-        <div class="alert alert-info text-center py-4" role="alert">Votre liste de devis est actuellement vide. Commencez à ajouter des articles !</div>
-        <div class="text-center">
-          {# Le lien vers le catalogue utilise maintenant le namespace 'catalogue' #}
-          <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-primary btn-lg">Parcourir le Catalogue</a>
+        <div class="card card-poterie shadow-sm text-center p-4 p-md-5">
+          <div class="mb-3" style="color: var(--poterie-argile);">
+            <i class="fas fa-file-invoice fa-3x"></i>
+          </div>
+          <h2 class="h5 fw-bold titre-poterie mb-2">Votre liste de devis est vide</h2>
+          <p class="text-poterie-muted mb-4">
+            Votre liste de devis est actuellement vide. Commencez à ajouter des articles !
+          </p>
+          <div>
+            {# Le lien vers le catalogue utilise maintenant le namespace 'catalogue' #}
+            <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-poterie fw-semibold px-4">
+              <i class="fas fa-store me-1"></i> Parcourir le Catalogue
+            </a>
+          </div>
         </div>
       {% endif %}
     </div>

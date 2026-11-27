@@ -11,11 +11,12 @@
     body {
       font-family: Helvetica, Arial, sans-serif;
       font-size: 12px;
-      color: #212529;
+      color: #2B2420;
+      background-color: #FFFFFF;
     }
     .header-table {
       width: 100%;
-      border-bottom: 2px solid #212529;
+      border-bottom: 2px solid #B85D3B;
       margin-bottom: 18px;
       padding-bottom: 10px;
     }
@@ -27,6 +28,12 @@
     .company-name {
       font-size: 20px;
       font-weight: bold;
+      color: #1E4E68;
+    }
+    .company-subtitle {
+      font-size: 11px;
+      color: #6E6259;
+      margin-top: 2px;
     }
     .doc-title {
       text-align: right;
@@ -34,12 +41,23 @@
     .doc-title h1 {
       font-size: 18px;
       margin: 0 0 4px 0;
+      color: #B85D3B;
+    }
+    .doc-meta {
+      font-size: 11px;
+      color: #2B2420;
     }
     .meta-box {
-      background-color: #f8f9fa;
-      border: 1px solid #dee2e6;
+      background-color: #FAF7F2;
+      border: 1px solid #E2D8CA;
+      border-left: 4px solid #1E4E68;
       padding: 10px 12px;
       margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .meta-label {
+      color: #1E4E68;
+      font-weight: bold;
     }
     table.items {
       width: 100%;
@@ -48,13 +66,18 @@
     }
     table.items th,
     table.items td {
-      border: 1px solid #dee2e6;
+      border: 1px solid #E2D8CA;
       padding: 8px 10px;
     }
     table.items th {
-      background-color: #f1f3f5;
+      background-color: #1E4E68;
+      color: #FAF7F2;
       font-weight: bold;
       text-align: left;
+      border-color: #1E4E68;
+    }
+    table.items tbody tr:nth-child(even) {
+      background-color: #FAF7F2;
     }
     .text-end {
       text-align: right;
@@ -64,15 +87,20 @@
     }
     .total-row td {
       font-weight: bold;
-      background-color: #f8f9fa;
+      background-color: #EFE7DC;
+      color: #1E4E68;
       font-size: 13px;
+      border-top: 2px solid #B85D3B;
+    }
+    .total-amount {
+      color: #B85D3B;
     }
     .footer {
       margin-top: 24px;
       font-size: 10px;
-      color: #6c757d;
+      color: #6E6259;
       text-align: center;
-      border-top: 1px solid #dee2e6;
+      border-top: 1px solid #E2D8CA;
       padding-top: 8px;
     }
   </style>
@@ -82,18 +110,18 @@
     <tr>
       <td>
         <div class="company-name">La Carthagenoise</div>
-        <div>Devis & Commande</div>
+        <div class="company-subtitle">Poterie &amp; Céramique Artisanale — Devis &amp; Commande</div>
       </td>
       <td class="doc-title">
         <h1>DEVIS N° #{{ devis.id }}</h1>
-        <div>Date : {{ devis.date_creation|date:"d/m/Y H:i" }}</div>
-        <div>Statut : <strong>{{ devis.get_statut_display }}</strong></div>
+        <div class="doc-meta">Date : {{ devis.date_creation|date:"d/m/Y H:i" }}</div>
+        <div class="doc-meta">Statut : <strong>{{ devis.get_statut_display }}</strong></div>
       </td>
     </tr>
   </table>
 
   <div class="meta-box">
-    <strong>Client :</strong>
+    <span class="meta-label">Client :</span>
     {% if devis.utilisateur %}
       {{ devis.utilisateur.get_full_name|default:devis.utilisateur.username }}
       {% if devis.utilisateur.profil %}
@@ -103,8 +131,8 @@
       {{ devis.nom_client|default:"Invité" }} (Visiteur)
     {% endif %}
     <br>
-    <strong>Email :</strong> {{ devis.utilisateur.email|default:devis.email_client|default:"—" }}<br>
-    <strong>Téléphone :</strong> {{ devis.utilisateur.profil.telephone|default:devis.telephone|default:"—" }}
+    <span class="meta-label">Email :</span> {{ devis.utilisateur.email|default:devis.email_client|default:"—" }}<br>
+    <span class="meta-label">Téléphone :</span> {{ devis.utilisateur.profil.telephone|default:devis.telephone|default:"—" }}
   </div>
 
   <table class="items">
@@ -133,7 +161,7 @@
       {% endfor %}
       <tr class="total-row">
         <td colspan="4" class="text-end">Total général</td>
-        <td class="text-end">{{ total_general }} DT</td>
+        <td class="text-end total-amount">{{ total_general }} DT</td>
       </tr>
     </tbody>
   </table>

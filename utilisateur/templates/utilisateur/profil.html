@@ -5,69 +5,93 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center my-4">
     <div class="col-lg-10">
-        <div class="card shadow-sm border-0 my-4">
+        <div class="card card-poterie shadow-sm">
+            <div class="card-header card-header-poterie py-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h2 class="h5 fw-bold mb-0">
+                        <i class="fas fa-id-card me-2" style="color: var(--poterie-argile);"></i>Espace Membre &amp; Suivi de Devis
+                    </h2>
+                    <span class="badge badge-terracotta px-3 py-2">
+                        {{ user.profil.get_type_client_display }}
+                    </span>
+                </div>
+            </div>
+
             <div class="card-body p-4 p-md-5">
-                <div class="d-flex align-items-center mb-4">
-                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 70px; height: 70px; font-size: 2rem;">
+                <!-- En-tête utilisateur -->
+                <div class="d-flex flex-wrap align-items-center mb-4">
+                    <div
+                        class="rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm"
+                        style="width: 72px; height: 72px; font-size: 2rem; background-color: var(--poterie-bleu); color: #ffffff; border: 2px solid var(--poterie-argile);"
+                    >
                         <i class="fas fa-user"></i>
                     </div>
                     <div>
-                        <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
-                        <p class="text-muted mb-0">
-                            Compte : <span class="badge bg-info text-dark">{{ user.profil.get_type_client_display }}</span>
+                        <h3 class="h4 fw-bold titre-poterie mb-1">{{ user.get_full_name|default:user.username }}</h3>
+                        <p class="text-poterie-muted mb-0">
+                            Type de compte : <span class="badge badge-email-bleu">{{ user.profil.get_type_client_display }}</span>
                         </p>
                     </div>
                 </div>
 
-                <hr class="mb-4">
+                <hr class="mb-4" style="border: 0; border-top: 1px solid var(--poterie-bordure);">
 
-                <h4 class="mb-3">Informations Personnelles & Contact</h4>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold text-muted">Nom d'utilisateur :</div>
-                    <div class="col-sm-8">{{ user.username }}</div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold text-muted">Email :</div>
-                    <div class="col-sm-8">{{ user.email }}</div>
-                </div>
+                <h4 class="h5 fw-bold titre-poterie mb-3">
+                    <i class="fas fa-address-book me-2" style="color: var(--poterie-terracotta);"></i>Informations Personnelles &amp; Contact
+                </h4>
 
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold text-muted">Téléphone :</div>
-                    <div class="col-sm-8">{{ user.profil.telephone|default:"Non renseigné" }}</div>
-                </div>
+                <div class="p-3 p-md-4 rounded mb-4" style="background-color: var(--poterie-sable); border: 1px solid var(--poterie-bordure);">
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold text-poterie-muted">Nom d'utilisateur :</div>
+                        <div class="col-sm-8 fw-semibold titre-poterie">{{ user.username }}</div>
+                    </div>
 
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold text-muted">Adresse :</div>
-                    <div class="col-sm-8">{{ user.profil.adresse|default:"Non renseignée" }}</div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold text-poterie-muted">Email :</div>
+                        <div class="col-sm-8">{{ user.email }}</div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold text-poterie-muted">Téléphone :</div>
+                        <div class="col-sm-8">{{ user.profil.telephone|default:"Non renseigné" }}</div>
+                    </div>
+
+                    <div class="row mb-0">
+                        <div class="col-sm-4 fw-bold text-poterie-muted">Adresse :</div>
+                        <div class="col-sm-8">{{ user.profil.adresse|default:"Non renseignée" }}</div>
+                    </div>
                 </div>
 
                 <!-- Informations professionnelles si Revendeur ou Artisan -->
                 {% if user.profil.type_client != 'particulier' %}
-                    <hr class="my-4">
-                    <h4 class="mb-3">Informations Professionnelles</h4>
-                    
-                    <div class="row mb-3">
-                        <div class="col-sm-4 fw-bold text-muted">Entreprise / Boutique :</div>
-                        <div class="col-sm-8">{{ user.profil.nom_entreprise|default:"Non renseigné" }}</div>
-                    </div>
+                    <h4 class="h5 fw-bold titre-poterie mb-3">
+                        <i class="fas fa-briefcase me-2" style="color: var(--poterie-bleu);"></i>Informations Professionnelles
+                    </h4>
 
-                    <div class="row mb-3">
-                        <div class="col-sm-4 fw-bold text-muted">Matricule Fiscal :</div>
-                        <div class="col-sm-8">{{ user.profil.matricule_fiscal|default:"Non renseigné" }}</div>
+                    <div class="p-3 p-md-4 rounded mb-4" style="background-color: var(--poterie-sable); border: 1px solid var(--poterie-bordure);">
+                        <div class="row mb-2">
+                            <div class="col-sm-4 fw-bold text-poterie-muted">Entreprise / Boutique :</div>
+                            <div class="col-sm-8 fw-semibold titre-poterie">{{ user.profil.nom_entreprise|default:"Non renseigné" }}</div>
+                        </div>
+
+                        <div class="row mb-0">
+                            <div class="col-sm-4 fw-bold text-poterie-muted">Matricule Fiscal :</div>
+                            <div class="col-sm-8"><code class="code-slug">{{ user.profil.matricule_fiscal|default:"Non renseigné" }}</code></div>
+                        </div>
                     </div>
                 {% endif %}
 
                 <!-- Section : Historique et Suivi des Demandes de Devis -->
-                <hr class="my-5">
-                <h4 class="mb-3"><i class="fas fa-history text-secondary"></i> Mes Demandes de Devis</h4>
+                <hr class="my-5" style="border: 0; border-top: 1px solid var(--poterie-bordure);">
+                <h4 class="h5 fw-bold titre-poterie mb-3">
+                    <i class="fas fa-history me-2" style="color: var(--poterie-terracotta);"></i>Mes Demandes de Devis
+                </h4>
 
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
+                <div class="table-responsive rounded" style="border: 1px solid var(--poterie-bordure);">
+                    <table class="table table-hover table-poterie align-middle mb-0">
+                        <thead>
                             <tr>
                                 <th>N° Devis (PDF)</th>
                                 <th>Date de demande</th>
@@ -81,23 +105,25 @@
                                         <a
                                             href="{% url 'devis:devis_pdf' devis.id %}"
                                             target="_blank"
-                                            class="text-decoration-none text-dark"
+                                            class="text-decoration-none titre-poterie"
                                             title="Ouvrir le devis #{{ devis.id }} en PDF"
                                         >
                                             <i class="fas fa-file-pdf text-danger me-1"></i>
-                                            #{{ devis.id }} — {{ user.get_full_name|default:user.username }}
+                                            #{{ devis.id }} &mdash; {{ user.get_full_name|default:user.username }}
                                         </a>
                                     </td>
-                                    <td>{{ devis.date_creation|date:"d/m/Y à H:i" }}</td>
+                                    <td class="text-poterie-muted">{{ devis.date_creation|date:"d/m/Y à H:i" }}</td>
                                     <td>
                                         {% if devis.statut == 'attente' %}
-                                            <span class="badge bg-warning text-dark">{{ devis.get_statut_display }}</span>
+                                            <span class="badge" style="background-color: var(--poterie-sable); color: var(--poterie-terracotta-dark); border: 1px solid var(--poterie-argile);">
+                                                {{ devis.get_statut_display }}
+                                            </span>
                                         {% elif devis.statut == 'valide' %}
-                                            <span class="badge bg-primary">{{ devis.get_statut_display }}</span>
+                                            <span class="badge badge-bleu">{{ devis.get_statut_display }}</span>
                                         {% elif devis.statut == 'Livraison' %}
-                                            <span class="badge bg-info text-dark">{{ devis.get_statut_display }}</span>
+                                            <span class="badge badge-email-bleu">{{ devis.get_statut_display }}</span>
                                         {% elif devis.statut == 'termine' %}
-                                            <span class="badge bg-success">{{ devis.get_statut_display }}</span>
+                                            <span class="badge badge-olive">{{ devis.get_statut_display }}</span>
                                         {% else %}
                                             <span class="badge bg-danger">{{ devis.get_statut_display }}</span>
                                         {% endif %}
@@ -105,10 +131,12 @@
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted py-4">
+                                    <td colspan="3" class="text-center text-poterie-muted py-4">
                                         Vous n'avez effectué aucune demande de devis pour le moment.
                                         <br>
-                                        <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-sm btn-dark mt-2">Découvrir le catalogue</a>
+                                        <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-sm btn-poterie fw-semibold mt-2">
+                                            Découvrir le catalogue
+                                        </a>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -117,8 +145,8 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-                    <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> Retour au catalogue
+                    <a href="{% url 'catalogue:liste_produits' %}" class="btn btn-outline-bleu">
+                        <i class="fas fa-arrow-left me-1"></i> Retour au catalogue
                     </a>
                 </div>
             </div>
